@@ -6,8 +6,6 @@
     <title>COILOPS CRM – Advanced</title>
     <!-- SheetJS for Excel import -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- QRCode.js for QR generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         /* ============================================================
            VARIABLES & RESET
@@ -707,19 +705,6 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* QR Code */
-        .qr-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 12px;
-            background: #ffffff;
-            border-radius: 8px;
-            margin: 8px 0;
-        }
-        .qr-container #qrcode { display: flex; justify-content: center; }
-        .qr-container .qr-label { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
-
         .toast {
             position: fixed;
             bottom: 80px;
@@ -927,7 +912,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Advanced v5.0
+            <strong>COILOPS</strong> · Advanced v5.1
         </div>
     </aside>
 
@@ -956,15 +941,15 @@
                 <div class="stat-card"><div class="stat-label">Tasks Due</div><div class="stat-value gold" id="statTasks">0</div></div>
             </div>
 
-            <!-- Conversion Funnel -->
+            <!-- Industry Breakdown -->
             <div class="dashboard-grid">
-                <div class="card">
-                    <div class="card-title">🔄 Conversion Funnel</div>
-                    <div id="funnelChart" style="display:flex; flex-direction:column; gap:8px;"></div>
-                </div>
                 <div class="card">
                     <div class="card-title">📊 By Industry</div>
                     <div id="industryChart" style="display:flex; flex-direction:column; gap:6px;"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 By Source</div>
+                    <div id="sourceChart" style="display:flex; flex-direction:column; gap:6px;"></div>
                 </div>
             </div>
 
@@ -1069,6 +1054,9 @@
                 <select id="bulkAssigned" style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:13px;">
                     <option value="">Assign To...</option>
                     <option value="unassigned">Unassigned</option>
+                    <option value="Tushar">Tushar</option>
+                    <option value="Aditya">Aditya</option>
+                    <option value="Vaishnavi">Vaishnavi</option>
                 </select>
                 <button class="btn btn-primary btn-sm" onclick="applyBulkEdit()">Apply</button>
                 <button class="btn btn-outline btn-sm" onclick="bulkEditToggle()">Cancel</button>
@@ -1244,8 +1232,8 @@
         // ============================================================
         const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxtalAlsJY3tMty7_WUeeAm7Wh85tc0G5RGD_MNiXlIefa9qYEY_A_O7Z2ei86RoCA9kQ/exec';
 
-        // Team members (add your team names here)
-        const TEAM_MEMBERS = ['You', 'Team Member 1', 'Team Member 2', 'Team Member 3'];
+        // Team members
+        const TEAM_MEMBERS = ['Tushar', 'Aditya', 'Vaishnavi'];
 
         // ============================================================
         // API CLIENT
@@ -1546,17 +1534,6 @@
         }
 
         // ============================================================
-        // DUPLICATE DETECTION
-        // ============================================================
-        function checkDuplicate(email, phone, excludeId = null) {
-            return leads.some(l => {
-                if (excludeId && l.id === excludeId) return false;
-                return (email && l.email && l.email.toLowerCase() === email.toLowerCase()) ||
-                       (phone && l.phone && l.phone === phone);
-            });
-        }
-
-        // ============================================================
         // RENDER FUNCTIONS
         // ============================================================
         function renderDashboard() {
@@ -1575,36 +1552,11 @@
             document.getElementById('statLost').textContent = lost;
             document.getElementById('statTasks').textContent = overdueTasks.length || pendingTasks.length;
 
-            renderFunnel();
             renderIndustryChart();
+            renderSourceChart();
             renderTeamSummary();
             renderTodayTasks();
             renderNeedsFollowup();
-        }
-
-        function renderFunnel() {
-            const stages = ['lead', 'contacted', 'qualified', 'proposal', 'negotiation', 'won'];
-            const counts = stages.map(s => leads.filter(l => l.status === s).length);
-            const max = Math.max(...counts, 1);
-            const container = document.getElementById('funnelChart');
-            const colors = ['#6a8aaa', '#3a7abd', '#2a9a6a', '#c5a059', '#d48a3a', '#2a9a4a'];
-            const labels = ['Lead', 'Contacted', 'Qualified', 'Proposal', 'Negotiation', 'Won'];
-            
-            container.innerHTML = labels.map((label, i) => {
-                const pct = (counts[i] / max) * 100;
-                const dropOff = i > 0 ? ((counts[i-1] - counts[i]) / (counts[i-1] || 1)) * 100 : 0;
-                return `<div style="display:flex; align-items:center; gap:10px;">
-                    <span style="width:80px; font-size:12px; color:var(--text-muted);">${label}</span>
-                    <div style="flex:1; height:24px; background:var(--bg-input); border-radius:4px; overflow:hidden; position:relative;">
-                        <div style="height:100%; width:${pct}%; background:${colors[i]}; border-radius:4px; transition:width 0.4s; display:flex; align-items:center; padding:0 8px; font-size:11px; font-weight:600; min-width:30px;">
-                            ${counts[i]}
-                        </div>
-                    </div>
-                    <span style="font-size:11px; color:${dropOff > 30 ? '#ff6b4a' : 'var(--text-dim)'}; min-width:50px;">
-                        ${i > 0 ? `${Math.round(dropOff)}% drop` : ''}
-                    </span>
-                </div>`;
-            }).join('');
         }
 
         function renderIndustryChart() {
@@ -1637,10 +1589,35 @@
             }).join('');
         }
 
+        function renderSourceChart() {
+            const sources = {};
+            leads.forEach(l => {
+                const src = l.source || 'other';
+                sources[src] = (sources[src] || 0) + 1;
+            });
+            const labels = Object.keys(sources);
+            const values = Object.values(sources);
+            const max = Math.max(...values, 1);
+            const colors = ['#c5a059','#00a8ff','#4ac49a','#d48a3a','#6a8aaa','#8a3a3a','#a6a6a6'];
+            const container = document.getElementById('sourceChart');
+            container.innerHTML = labels.map((label, i) => {
+                const pct = (values[i] / max) * 100;
+                const color = colors[i % colors.length];
+                return `<div style="display:flex; align-items:center; gap:10px;">
+                    <span style="width:80px; font-size:12px; color:var(--text-muted); text-transform:capitalize;">${label}</span>
+                    <div style="flex:1; height:6px; background:var(--bg-input); border-radius:4px; overflow:hidden;">
+                        <div style="height:100%; width:${pct}%; background:${color}; border-radius:4px; transition:width 0.4s;"></div>
+                    </div>
+                    <span style="font-size:12px; font-weight:600; min-width:24px; text-align:right;">${values[i]}</span>
+                </div>`;
+            }).join('') || '<div style="color:var(--text-dim);">No leads yet.</div>';
+        }
+
         function renderTeamSummary() {
             const container = document.getElementById('teamSummaryGrid');
             const userStats = {};
-            TEAM_MEMBERS.forEach(name => {
+            const allMembers = ['You', ...TEAM_MEMBERS];
+            allMembers.forEach(name => {
                 const userLeads = leads.filter(l => l.assigned_to === name);
                 const activities = userLeads.reduce((sum, l) => sum + (activitiesCache.get(l.company)?.length || 0), 0);
                 const won = userLeads.filter(l => l.status === 'won').length;
@@ -1649,7 +1626,7 @@
                 userStats[name] = { total, activities, won, rate };
             });
 
-            const sorted = TEAM_MEMBERS.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
+            const sorted = allMembers.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
             
             if (sorted.every(name => (userStats[name]?.total || 0) === 0)) {
                 container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;grid-column:1/-1;">No team data yet. Assign leads to team members.</div>';
@@ -1764,8 +1741,6 @@
                             <button class="btn-icon" onclick="openLeadModal('${l.company}','${l.contact_name}')" title="Edit">✏️</button>
                             <button class="btn-icon ${isHot ? 'hot' : ''}" onclick="addTaskFromLead('${l.company}','${l.contact_name}')" title="Add Task">✅</button>
                             <button class="btn-icon" onclick="deleteLead('${l.company}','${l.contact_name}')" title="Delete">🗑️</button>
-                            <button class="btn-icon" onclick="copyLeadEmail('${l.email}')" title="Copy Email">📧</button>
-                            <button class="btn-icon" onclick="generateQR('${l.company}','${l.contact_name}')" title="QR Code">📱</button>
                         </td>
                     </tr>
                 `;
@@ -1838,7 +1813,8 @@
             // Team stats
             const container = document.getElementById('teamFullGrid');
             const userStats = {};
-            TEAM_MEMBERS.forEach(name => {
+            const allMembers = ['You', ...TEAM_MEMBERS];
+            allMembers.forEach(name => {
                 const userLeads = leads.filter(l => l.assigned_to === name);
                 const activities = userLeads.reduce((sum, l) => sum + (activitiesCache.get(l.company)?.length || 0), 0);
                 const won = userLeads.filter(l => l.status === 'won').length;
@@ -1847,7 +1823,7 @@
                 userStats[name] = { total, activities, won, rate };
             });
 
-            const sorted = TEAM_MEMBERS.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
+            const sorted = allMembers.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
             container.innerHTML = sorted.map(name => {
                 const stats = userStats[name] || { total: 0, activities: 0, won: 0, rate: 0 };
                 return `<div class="team-stats-card">
@@ -1998,7 +1974,6 @@
                 let rows = [];
                 const data = e.target.result;
                 
-                // Detect file type
                 if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
                     try {
                         const workbook = XLSX.read(data, { type: 'array' });
@@ -2009,7 +1984,6 @@
                         return;
                     }
                 } else {
-                    // CSV
                     const text = new TextDecoder().decode(data);
                     const lines = text.split('\n').filter(line => line.trim());
                     if (lines.length < 2) { showToast('Error', 'CSV file is empty or invalid.'); return; }
@@ -2037,7 +2011,7 @@
                     'notes': 'notes'
                 };
 
-                let imported = 0, failed = 0, duplicates = 0;
+                let imported = 0, failed = 0;
 
                 for (const row of rows) {
                     try {
@@ -2048,12 +2022,6 @@
                         });
                         
                         if (!lead.company && !lead.contact_name) continue;
-                        
-                        // Check for duplicates
-                        if (checkDuplicate(lead.email, lead.phone)) {
-                            duplicates++;
-                            continue;
-                        }
                         
                         lead.source = lead.source || 'other';
                         lead.status = lead.status || 'lead';
@@ -2066,7 +2034,7 @@
                 }
 
                 closeImportModal();
-                showToast('Import Complete', `✅ ${imported} imported, ${duplicates} duplicates skipped, ${failed} failed.`);
+                showToast('Import Complete', `✅ ${imported} imported, ${failed} failed.`);
                 if (imported > 0) syncNow();
             };
 
@@ -2078,64 +2046,8 @@
         }
 
         // ============================================================
-        // QR CODE
+        // LEAD DETAIL
         // ============================================================
-        function generateQR(company, contact) {
-            const lead = leads.find(l => l.company === company && l.contact_name === contact);
-            if (!lead) { showToast('Error', 'Lead not found.'); return; }
-            
-            const data = JSON.stringify({
-                name: lead.contact_name || '',
-                company: lead.company || '',
-                email: lead.email || '',
-                phone: lead.phone || '',
-                website: lead.website || ''
-            });
-            
-            const modal = document.getElementById('detailModal');
-            document.getElementById('detailTitle').textContent = '📱 Business Card';
-            
-            document.getElementById('detailBody').innerHTML = `
-                <div style="text-align:center; padding:10px 0;">
-                    <div style="font-size:20px;font-weight:700;color:var(--text-main);">${lead.company || lead.contact_name}</div>
-                    <div style="font-size:14px;color:var(--text-muted);">${lead.contact_name || ''}</div>
-                    <div style="font-size:12px;color:var(--text-dim);">${lead.email || ''} ${lead.phone ? '· '+lead.phone : ''}</div>
-                    <div class="qr-container">
-                        <div id="qrcode"></div>
-                        <div class="qr-label">Scan to save contact</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline" onclick="downloadQR()">⬇ Download QR</button>
-                    <button class="btn btn-sm btn-outline" onclick="closeDetailModal()">Close</button>
-                </div>
-            `;
-            modal.classList.add('open');
-            
-            // Generate QR using QRCode.js
-            setTimeout(() => {
-                const container = document.getElementById('qrcode');
-                if (container) {
-                    container.innerHTML = '';
-                    new QRCode(container, {
-                        text: data,
-                        width: 200,
-                        height: 200,
-                        colorDark: '#1a2634',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                }
-            }, 100);
-        }
-
-        function downloadQR() {
-            const canvas = document.querySelector('#qrcode canvas');
-            if (!canvas) { showToast('Error', 'No QR code to download.'); return; }
-            const link = document.createElement('a');
-            link.download = 'qrcode.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
         function showLeadDetail(company, contact) {
             const lead = leads.find(l => l.company === company && l.contact_name === contact);
             if (!lead) { showToast('Error', 'Lead not found.'); return; }
@@ -2143,8 +2055,8 @@
             const modal = document.getElementById('detailModal');
             document.getElementById('detailTitle').textContent = 'Lead Details';
             
-            const assignedOptions = TEAM_MEMBERS.map(name => 
-                `<option value="${name}" ${lead.assigned_to === name ? 'selected' : ''}>${name}</option>`
+            const assignedOptions = ['', 'You', ...TEAM_MEMBERS].map(name => 
+                `<option value="${name}" ${lead.assigned_to === name ? 'selected' : ''}>${name || 'Unassigned'}</option>`
             ).join('');
             
             document.getElementById('detailBody').innerHTML = `
@@ -2160,7 +2072,6 @@
                     <div style="grid-column:1/-1;">
                         <span style="color:var(--text-dim);">Assigned To:</span>
                         <select id="detailAssigned" style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:4px 8px; color:var(--text-main);">
-                            <option value="">Unassigned</option>
                             ${assignedOptions}
                         </select>
                         <button class="btn btn-sm btn-primary" onclick="updateAssigned('${lead.id}')">Update</button>
@@ -2171,7 +2082,6 @@
                 </div>
                 <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
                     <button class="btn btn-sm btn-outline" onclick="closeDetailModal(); openLeadModal('${lead.company}','${lead.contact_name}');">✏️ Edit</button>
-                    <button class="btn btn-sm btn-outline" onclick="generateQR('${lead.company}','${lead.contact_name}')">📱 QR</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteLead('${lead.company}','${lead.contact_name}'); closeDetailModal();">🗑️ Delete</button>
                 </div>
             `;
@@ -2187,7 +2097,9 @@
                 showToast('Success', `Assigned to ${assigned || 'unassigned'}`);
                 closeDetailModal();
                 syncNow();
-            } catch(e) { showToast('Error', 'Failed to update assignment.'); }
+            } catch(e) { 
+                showToast('Error', 'Failed to update assignment: ' + e.message); 
+            }
         }
 
         function closeDetailModal() {
@@ -2205,21 +2117,6 @@
             } catch(e) { return d; }
         }
 
-        function copyLeadEmail(email) {
-            if (!email) { showToast('Info', 'No email to copy.'); return; }
-            navigator.clipboard.writeText(email).then(() => {
-                showToast('Copied', `📧 ${email}`);
-            }).catch(() => {
-                const input = document.createElement('input');
-                input.value = email;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand('copy');
-                document.body.removeChild(input);
-                showToast('Copied', `📧 ${email}`);
-            });
-        }
-
         // ============================================================
         // LEAD CRUD
         // ============================================================
@@ -2228,8 +2125,8 @@
             const lead = editingLeadId ? leads.find(l => l.company === company && l.contact_name === contact) : null;
             document.getElementById('modalTitle').textContent = editingLeadId ? 'Edit Lead' : 'New Lead';
             
-            const assignedOptions = TEAM_MEMBERS.map(name => 
-                `<option value="${name}" ${lead && lead.assigned_to === name ? 'selected' : ''}>${name}</option>`
+            const assignedOptions = ['', 'You', ...TEAM_MEMBERS].map(name => 
+                `<option value="${name}" ${lead && lead.assigned_to === name ? 'selected' : ''}>${name || 'Unassigned'}</option>`
             ).join('');
             
             const winReasons = ['Price', 'Features', 'Implementation Time', 'ROI', 'Competitor', 'Other'];
@@ -2304,12 +2201,6 @@
             
             const email = document.getElementById('f_email').value.trim();
             const phone = document.getElementById('f_phone').value.trim();
-            
-            // Duplicate check
-            if (checkDuplicate(email, phone, editingLeadId)) {
-                showToast('⚠️ Duplicate', 'A lead with this email or phone already exists.');
-                return;
-            }
             
             const status = document.getElementById('f_status').value;
             let winReason = '', lossReason = '';
@@ -2502,6 +2393,7 @@
         syncNow();
         setInterval(checkReminders, 300000);
         console.log('🐿️ COILOPS Advanced CRM loaded with all low + medium features!');
+        console.log('👥 Team Members:', TEAM_MEMBERS.join(', '));
     </script>
 </body>
 </html>
