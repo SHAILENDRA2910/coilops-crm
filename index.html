@@ -81,6 +81,15 @@
             color: #0a0e17;
             flex-shrink: 0;
             letter-spacing: 1px;
+            overflow: hidden;
+            border: none;
+        }
+        .sidebar-brand .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            mix-blend-mode: screen;
         }
 
         .sidebar-brand .brand-text {
@@ -781,7 +790,10 @@
     ============================================================ -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="logo-icon">GS</div>
+            <div class="logo-icon">
+                <!-- Upload logo.png to your repository root -->
+                <img src="logo.png" alt="Gold Squirrel Studio" onerror="this.style.display='none'; this.parentElement.textContent='GS'; this.parentElement.style.background='var(--accent-gold)'; this.parentElement.style.color='#0a0e17'; this.parentElement.style.fontWeight='800'; this.parentElement.style.fontSize='18px'; this.parentElement.style.borderRadius='8px'; this.parentElement.style.display='flex'; this.parentElement.style.alignItems='center'; this.parentElement.style.justifyContent='center';">
+            </div>
             <div class="brand-text">
                 <div class="title">GOLD SQUIRREL</div>
                 <span class="sub">studio of innovation..</span>
@@ -818,7 +830,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Polished UI v3.2
+            <strong>COILOPS</strong> · Polished UI v3.3
         </div>
     </aside>
 
@@ -1013,7 +1025,7 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT ENGINE
+    JAVASCRIPT ENGINE (unchanged)
     ============================================================ -->
     <script>
         // ============================================================
