@@ -71,6 +71,9 @@
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius:10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
 
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
         .sidebar {
             width: 240px;
             min-height: 100vh;
@@ -231,6 +234,9 @@
             50% { opacity: 0.5; transform: scale(0.9); }
         }
 
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
         .main {
             flex: 1;
             padding: 24px 32px 40px;
@@ -718,6 +724,9 @@
         .fab:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(197,160,89,0.6); }
         .fab:active { transform: scale(0.95); }
 
+        /* ============================================================
+           BOTTOM NAV – Mobile Only
+           ============================================================ */
         .bottom-nav {
             display: none;
             position: fixed;
@@ -760,6 +769,73 @@
         }
         .bottom-nav .nav-item .badge.hot { background: #ff6b4a; color: #fff; }
 
+        /* ============================================================
+           MOBILE TOP BAR – Shows brand on mobile
+           ============================================================ */
+        .mobile-top-bar {
+            display: none;
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 16px;
+            z-index: 98;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 60px;
+        }
+        .mobile-top-bar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mobile-top-bar .brand .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0a0e17;
+            font-weight: 800;
+            font-size: 14px;
+            overflow: hidden;
+        }
+        .mobile-top-bar .brand .icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .mobile-top-bar .brand .text {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+        }
+        .mobile-top-bar .brand .text small {
+            font-size: 8px;
+            font-weight: 300;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            display: block;
+            margin-top: -2px;
+            text-transform: uppercase;
+        }
+        .mobile-top-bar .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            min-height: 44px;
+            min-width: 44px;
+        }
+        .mobile-top-bar .menu-btn:hover { color: var(--text-main); }
+
         .sidebar-backdrop {
             display: none;
             position: fixed;
@@ -769,12 +845,20 @@
         }
         .sidebar-backdrop.open { display: block; }
 
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
         @media (max-width: 1024px) {
             .dashboard-grid { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 768px) {
             body { padding-bottom: calc(70px + var(--safe-bottom)); }
+
+            .mobile-top-bar {
+                display: flex;
+            }
+
             .sidebar {
                 display: none;
                 position: fixed;
@@ -786,9 +870,11 @@
                 transform: translateX(-100%);
                 border-right: 1px solid var(--border-color);
                 border-radius: 0 16px 16px 0;
+                padding-top: 16px;
             }
             .sidebar.open { transform: translateX(0); }
-            .main { padding: 16px; padding-bottom: 80px; }
+
+            .main { padding: 16px; padding-top: 8px; padding-bottom: 80px; }
             .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
             .form-row { grid-template-columns: 1fr; }
@@ -803,6 +889,8 @@
             .bottom-nav { display: flex; }
             .toast { bottom: 90px; left: 16px; right: 16px; max-width: none; }
             .team-stats-grid { grid-template-columns: 1fr 1fr; }
+            .sidebar-brand .brand-text .title { font-size: 14px; }
+            .sidebar-brand .brand-text .sub { font-size: 8px; }
         }
 
         @media (max-width: 500px) {
@@ -819,8 +907,30 @@
 </head>
 <body>
 
+    <!-- ============================================================
+    MOBILE TOP BAR (Shows brand on mobile)
+    ============================================================ -->
+    <div class="mobile-top-bar" id="mobileTopBar">
+        <div class="brand">
+            <div class="icon">
+                <img src="logo.png" alt="GS" onerror="this.style.display='none'; this.parentElement.textContent='GS'; this.parentElement.style.background='var(--accent-gold)'; this.parentElement.style.color='#0a0e17'; this.parentElement.style.fontWeight='800'; this.parentElement.style.fontSize='14px';">
+            </div>
+            <div class="text">
+                GOLD SQUIRREL
+                <small>studio of innovation..</small>
+            </div>
+        </div>
+        <button class="menu-btn" onclick="toggleSidebar()" aria-label="Toggle Menu">☰</button>
+    </div>
+
+    <!-- ============================================================
+    SIDEBAR BACKDROP
+    ============================================================ -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
+    <!-- ============================================================
+    SIDEBAR
+    ============================================================ -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon">
@@ -875,6 +985,9 @@
         </div>
     </aside>
 
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
     <main class="main" id="mainContent">
 
         <!-- ======== DASHBOARD ======== -->
@@ -1115,8 +1228,10 @@
         </div>
     </main>
 
+    <!-- FAB -->
     <button class="fab" id="fab" onclick="openLeadModal()" aria-label="Add New Lead">+</button>
 
+    <!-- Bottom Nav -->
     <nav class="bottom-nav" id="bottomNav">
         <button class="nav-item active" data-page="dashboard"><span class="icon">📊</span>Dashboard</button>
         <button class="nav-item" data-page="leads"><span class="icon">👤</span>Leads<span class="badge" id="mobileLeadCount">0</span></button>
@@ -1385,6 +1500,17 @@
             }
         }
 
+        // ============================================================
+        // SIDEBAR (Mobile)
+        // ============================================================
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('open');
+            backdrop.classList.toggle('open');
+            document.getElementById('closeSidebarBtn').style.display = window.innerWidth <= 768 ? 'block' : 'none';
+        }
+
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarBackdrop').classList.remove('open');
@@ -1571,7 +1697,6 @@
 
             const sorted = allMembers.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
             
-            // Check if any lead is assigned
             const hasAssigned = leads.some(l => l.assigned_to && l.assigned_to !== 'unassigned' && l.assigned_to !== '');
             
             if (!hasAssigned) {
@@ -1997,7 +2122,7 @@
         }
 
         // ============================================================
-        // LEAD DETAIL – FIXED
+        // LEAD DETAIL
         // ============================================================
         function showLeadDetail(company, contact) {
             const lead = leads.find(l => l.company === company && l.contact_name === contact);
@@ -2048,7 +2173,6 @@
             modal.classList.add('open');
         }
 
-        // FIXED: Uses company + contact_name instead of lead.id
         async function updateAssigned(company, contact) {
             const assigned = document.getElementById('detailAssigned').value;
             const lead = leads.find(l => l.company === company && l.contact_name === contact);
