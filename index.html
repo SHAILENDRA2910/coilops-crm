@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COILOPS CRM – Advanced</title>
+    <title>COILOPS CRM – Optimized</title>
     <style>
-        /* === CSS === */
+        /* === CSS (same as before, omitted for brevity) === */
         * { margin:0; padding:0; box-sizing:border-box; }
         :root {
             --bg-primary: #0a0e17; --bg-card: #111a28; --bg-input: #0f1824;
@@ -187,6 +187,7 @@
         .lead-score.high { background:rgba(42,154,106,0.2); color:#4ac49a; }
         .lead-score.medium { background:rgba(197,160,89,0.2); color:#d4b06a; }
         .lead-score.low { background:rgba(106,138,170,0.2); color:#8aacc9; }
+        .sync-progress { font-size:12px; color:var(--text-dim); margin-left:8px; }
         @media (max-width:768px) {
             body { flex-direction:column; }
             .sidebar { width:100%; min-height:auto; height:auto; position:relative; padding:16px; border-right:none; border-bottom:1px solid var(--border-color); }
@@ -234,9 +235,10 @@
         <div class="sync-status">
             <span class="dot online" id="syncDot"></span>
             <span id="syncText">Online</span>
+            <span class="sync-progress" id="syncProgress"></span>
             <span style="margin-left:auto; font-size:10px; color:var(--text-dim);" id="syncTime"></span>
         </div>
-        <div class="sidebar-footer"><strong>COILOPS</strong> · Advanced CRM v3.0</div>
+        <div class="sidebar-footer"><strong>COILOPS</strong> · Optimized CRM v3.1</div>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -244,7 +246,7 @@
         <!-- Dashboard -->
         <div id="page-dashboard" class="page-content">
             <div class="page-header">
-                <div><h1>Dashboard <small>Live CRM — Google Sheets Backend</small></h1></div>
+                <div><h1>Dashboard <small>Optimized Sync — Lazy-loading Activities</small></h1></div>
                 <div class="actions">
                     <button class="btn btn-primary" onclick="openLeadModal()">+ New Lead</button>
                     <button class="btn btn-outline btn-sm" onclick="syncNow()">🔄 Sync Now</button>
@@ -258,7 +260,6 @@
                 <div class="stat-card"><div class="stat-label">Lost</div><div class="stat-value red" id="statLost">0</div></div>
                 <div class="stat-card"><div class="stat-label">Tasks Due</div><div class="stat-value gold" id="statTasks">0</div></div>
             </div>
-
             <div class="dashboard-grid">
                 <div class="card">
                     <div class="card-title">📌 By Stage</div>
@@ -270,11 +271,11 @@
                 </div>
                 <div class="card">
                     <div class="card-title">✅ Tasks Due Today</div>
-                    <div id="todayTasks"><div style="color:var(--text-dim);font-size:13px;">No tasks due today.</div></div>
+                    <div id="todayTasks"><div style="color:var(--text-dim);font-size:13px;">Loading tasks...</div></div>
                 </div>
                 <div class="card">
                     <div class="card-title">🔥 Needs Follow-up</div>
-                    <div id="needsFollowup"><div style="color:var(--text-dim);font-size:13px;">All leads are up to date.</div></div>
+                    <div id="needsFollowup"><div style="color:var(--text-dim);font-size:13px;">Loading...</div></div>
                 </div>
             </div>
         </div>
@@ -336,6 +337,7 @@
                 <div><h1>Tasks <small>Follow-ups & reminders</small></h1></div>
                 <div class="actions">
                     <button class="btn btn-primary" onclick="openTaskModal()">+ New Task</button>
+                    <button class="btn btn-outline btn-sm" onclick="loadTasks()">🔄 Refresh Tasks</button>
                 </div>
             </div>
             <div class="table-wrap">
@@ -348,6 +350,7 @@
                             <option value="completed">Completed</option>
                         </select>
                     </div>
+                    <span style="font-size:12px;color:var(--text-dim);margin-left:auto;" id="taskLoadStatus"></span>
                 </div>
                 <div class="table-scroll">
                     <table>
@@ -391,7 +394,7 @@
     <div class="toast" id="toast"><div class="toast-title" id="toastTitle">Success</div><div id="toastMessage">Action completed.</div></div>
 
     <!-- ============================================================
-    JAVASCRIPT ENGINE
+    JAVASCRIPT ENGINE – OPTIMIZED
     ============================================================ -->
     <script>
         // ============================================================
@@ -422,6 +425,7 @@
         // ============================================================
         let leads = [];
         let tasks = [];
+        let activitiesCache = new Map();
         let currentPage = 'dashboard';
         let editingLeadId = null;
         let isSyncing = false;
@@ -434,50 +438,132 @@
             try { return (await ApiClient.execute('readLeads')).data || []; } 
             catch(e) { showToast('Sync Error', e.message); return []; }
         }
+
         async function fetchActivities(leadId) {
-            try { return (await ApiClient.execute('readActivities', { lead_id: leadId })).data || []; } 
-            catch(e) { return []; }
+            // Check cache first
+            if (activitiesCache.has(leadId)) {
+                return activitiesCache.get(leadId);
+            }
+            try {
+                const result = (await ApiClient.execute('readActivities', { lead_id: leadId })).data || [];
+                activitiesCache.set(leadId, result);
+                return result;
+            } catch(e) { return []; }
         }
+
+        async function fetchAllActivities() {
+            try {
+                // Since we don't have a batch endpoint, we fetch per lead
+                // But we cache aggressively
+                const allActivities = [];
+                for (const lead of leads) {
+                    const acts = await fetchActivities(lead.company);
+                    allActivities.push(...acts);
+                }
+                return allActivities;
+            } catch(e) { return []; }
+        }
+
         async function saveLeadRecord(leadData) { return await ApiClient.execute('saveLead', { data: leadData }); }
         async function deleteLeadRecord(leadData) { return await ApiClient.execute('deleteLead', { data: leadData }); }
         async function createActivityRecord(actData) { return await ApiClient.execute('saveActivity', { data: actData }); }
 
         // ============================================================
-        // SYNC ENGINE
+        // SYNC ENGINE — OPTIMIZED (Only fetches leads)
         // ============================================================
         async function syncNow() {
             if (isSyncing) return;
             isSyncing = true;
             document.getElementById('syncDot').className = 'dot syncing';
             document.getElementById('syncText').textContent = 'Syncing...';
+            document.getElementById('syncProgress').textContent = 'Loading leads...';
 
             try {
-                leads = await fetchLeads();
-                // Load tasks from activities
+                // Step 1: Fetch leads (fast)
+                const newLeads = await fetchLeads();
+                leads = newLeads;
+                document.getElementById('syncProgress').textContent = `✅ ${leads.length} leads loaded`;
+
+                // Step 2: Clear activity cache (will reload on demand)
+                activitiesCache = new Map();
+
+                // Step 3: Update UI
+                document.getElementById('syncDot').className = 'dot online';
+                document.getElementById('syncText').textContent = 'Online';
+                document.getElementById('syncTime').textContent = new Date().toLocaleTimeString();
+                document.getElementById('syncProgress').textContent = '';
+
+                // Step 4: Load tasks in background (don't block UI)
+                if (currentPage === 'tasks') {
+                    loadTasks();
+                } else {
+                    // Preload tasks silently in background
+                    setTimeout(loadTasksSilent, 500);
+                }
+
+                refreshCurrentPage();
+                updateBadges();
+                showToast('Sync', `✅ ${leads.length} leads loaded (activities lazy-load).`);
+            } catch (e) {
+                document.getElementById('syncDot').className = 'dot offline';
+                document.getElementById('syncText').textContent = 'Offline';
+                document.getElementById('syncProgress').textContent = '❌ Sync failed';
+                showToast('Error', 'Sync failed.');
+            } finally { isSyncing = false; }
+        }
+
+        // ============================================================
+        // TASKS LOADING (Lazy)
+        // ============================================================
+        async function loadTasks() {
+            document.getElementById('taskLoadStatus').textContent = 'Loading tasks...';
+            try {
                 tasks = [];
                 for (const lead of leads) {
                     const acts = await fetchActivities(lead.company);
-                    const taskActs = acts.filter(a => a.type === 'task');
+                    const taskActs = acts.filter(a => a.type === 'task' || a.type === 'reminder');
                     for (const act of taskActs) {
                         tasks.push({
-                            id: act.id || act.description,
+                            id: act.id || act.description + Math.random(),
                             lead_id: lead.company,
                             lead_name: lead.company,
-                            description: act.description,
+                            description: act.description || act.type,
                             due_date: act.date,
                             status: act.outcome === 'completed' ? 'completed' : 'pending'
                         });
                     }
                 }
-                document.getElementById('syncDot').className = 'dot online';
-                document.getElementById('syncText').textContent = 'Online';
-                document.getElementById('syncTime').textContent = new Date().toLocaleTimeString();
-                refreshCurrentPage();
+                document.getElementById('taskLoadStatus').textContent = `${tasks.length} tasks loaded`;
+                renderTasks();
                 updateBadges();
-            } catch (e) {
-                document.getElementById('syncDot').className = 'dot offline';
-                document.getElementById('syncText').textContent = 'Offline';
-            } finally { isSyncing = false; }
+            } catch(e) {
+                document.getElementById('taskLoadStatus').textContent = '❌ Failed to load';
+                showToast('Error', 'Failed to load tasks.');
+            }
+        }
+
+        // Silent background load
+        async function loadTasksSilent() {
+            try {
+                const newTasks = [];
+                for (const lead of leads) {
+                    const acts = await fetchActivities(lead.company);
+                    const taskActs = acts.filter(a => a.type === 'task' || a.type === 'reminder');
+                    for (const act of taskActs) {
+                        newTasks.push({
+                            id: act.id || act.description + Math.random(),
+                            lead_id: lead.company,
+                            lead_name: lead.company,
+                            description: act.description || act.type,
+                            due_date: act.date,
+                            status: act.outcome === 'completed' ? 'completed' : 'pending'
+                        });
+                    }
+                }
+                tasks = newTasks;
+                updateBadges();
+                if (currentPage === 'tasks') renderTasks();
+            } catch(e) { /* silent fail */ }
         }
 
         // ============================================================
@@ -494,7 +580,7 @@
             if (page === 'dashboard') renderDashboard();
             else if (page === 'leads') renderLeads();
             else if (page === 'pipeline') renderPipeline();
-            else if (page === 'tasks') renderTasks();
+            else if (page === 'tasks') { renderTasks(); loadTasks(); }
             else if (page === 'export') renderExport();
             updateBadges();
         }
@@ -505,8 +591,6 @@
             document.getElementById('pipeCount').textContent = leads.filter(l => l.status !== 'won' && l.status !== 'lost').length;
             const pendingTasks = tasks.filter(t => t.status === 'pending');
             const overdueTasks = pendingTasks.filter(t => t.due_date && new Date(t.due_date) < new Date());
-            document.getElementById('taskCount').textContent = overdueTasks.length + (pendingTasks.length - overdueTasks.length > 0 ? '+' : '');
-            document.getElementById('taskCount').textContent = pendingTasks.length;
             if (overdueTasks.length > 0) {
                 document.getElementById('taskCount').className = 'badge hot';
                 document.getElementById('taskCount').textContent = overdueTasks.length + ' overdue';
@@ -543,16 +627,10 @@
             const won = leads.filter(l => l.status === 'won').length;
             const lost = leads.filter(l => l.status === 'lost').length;
             
-            // Hot leads: high priority + no activity in 7 days
-            const now = new Date();
             const hot = leads.filter(l => {
                 if (l.priority !== 'high') return false;
                 if (l.status === 'won' || l.status === 'lost') return false;
-                // Check if any activity in last 7 days
-                const lastAct = getLastActivityDate(l.company);
-                if (!lastAct) return true;
-                const days = (now - new Date(lastAct)) / (1000*60*60*24);
-                return days > 7;
+                return true;
             });
             
             const pendingTasks = tasks.filter(t => t.status === 'pending');
@@ -569,11 +647,6 @@
             renderSourceChart();
             renderTodayTasks();
             renderNeedsFollowup();
-        }
-
-        function getLastActivityDate(company) {
-            // Since we don't have activities loaded globally, return null for now
-            return null;
         }
 
         function renderStageChart() {
@@ -634,14 +707,8 @@
 
         function renderNeedsFollowup() {
             const container = document.getElementById('needsFollowup');
-            const now = new Date();
-            // Simulate: leads with no activity in 7 days and not won/lost
-            const needsFollowup = leads.filter(l => {
-                if (l.status === 'won' || l.status === 'lost') return false;
-                // Check if any activity in last 7 days by checking activities
-                return false; // simplified
-            }).slice(0, 5);
-            
+            // Simple: show leads with status 'lead' or 'contacted'
+            const needsFollowup = leads.filter(l => l.status === 'lead' || l.status === 'contacted').slice(0, 5);
             if (needsFollowup.length === 0) {
                 container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;">All leads are up to date. 🚀</div>';
                 return;
@@ -709,7 +776,7 @@
                         <td><span class="priority-badge ${l.priority||'medium'}">${l.priority||'medium'}</span></td>
                         <td><span class="lead-score ${scoreClass}">${score}</span></td>
                         <td class="${isOverdue ? 'overdue' : ''}">${lastContact !== '—' ? formatDate(lastContact) : '—'}</td>
-                        <td><span class="activity-count">${l.activity_count || 0}</span></td>
+                        <td><span class="activity-count">${activitiesCache.get(l.company)?.length || 0}</span></td>
                         <td style="text-align:right;">
                             <button class="btn-icon" onclick="viewLead('${l.company}','${l.contact_name}')" title="View">👁️</button>
                             <button class="btn-icon" onclick="openLeadModal('${l.company}','${l.contact_name}')" title="Edit">✏️</button>
@@ -752,18 +819,18 @@
             const filter = document.getElementById('taskFilter')?.value || 'all';
             let filtered = tasks.filter(t => {
                 if (filter === 'pending') return t.status === 'pending';
-                if (filter === 'overdue') return t.status === 'pending' && new Date(t.due_date) < new Date();
+                if (filter === 'overdue') return t.status === 'pending' && t.due_date && new Date(t.due_date) < new Date();
                 if (filter === 'completed') return t.status === 'completed';
                 return true;
             });
             const tbody = document.getElementById('taskTableBody');
             if (!tbody) return;
             if (!filtered.length) {
-                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">✅</div><h3>No tasks</h3></div></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">✅</div><h3>No tasks found</h3></div></td></tr>`;
                 return;
             }
             tbody.innerHTML = filtered.map(t => {
-                const isOverdue = t.status === 'pending' && new Date(t.due_date) < new Date();
+                const isOverdue = t.status === 'pending' && t.due_date && new Date(t.due_date) < new Date();
                 return `<tr>
                     <td>${t.description}</td>
                     <td>${t.lead_name || '—'}</td>
@@ -813,7 +880,7 @@
         function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,4); }
 
         // ============================================================
-        // LEAD UI ACTIONS
+        // LEAD UI ACTIONS (unchanged from previous version)
         // ============================================================
         function openLeadModal(company, contact) {
             editingLeadId = (company && contact) ? company+'-'+contact : null;
@@ -891,13 +958,15 @@
         }
 
         // ============================================================
-        // VIEW LEAD
+        // VIEW LEAD — Lazy loads activities
         // ============================================================
         async function viewLead(company, contact) {
             const lead = leads.find(l => l.company === company && l.contact_name === contact);
             if (!lead) return;
             
             document.getElementById('modalTitle').textContent = 'Lead Details';
+            
+            // Lazy load activities
             const activities = await fetchActivities(company);
 
             const activityHtml = activities.length ? activities.map(a => {
@@ -981,6 +1050,10 @@
                 date: date,
                 outcome: outcome || (type === 'task' ? 'pending' : '')
             });
+            
+            // Invalidate cache
+            activitiesCache.delete(company);
+            
             showToast('Success', 'Activity logged.');
             closeModal();
             syncNow();
@@ -991,7 +1064,7 @@
         // ============================================================
         function openTaskModal(company, contact) {
             document.getElementById('taskModalTitle').textContent = 'New Task';
-            const leadOptions = leads.map(l => `<option value="${l.company}">${l.company || l.contact_name}</option>`).join('');
+            const leadOptions = leads.map(l => `<option value="${l.company}" ${l.company === company ? 'selected' : ''}>${l.company || l.contact_name}</option>`).join('');
             document.getElementById('taskModalBody').innerHTML = `
                 <div class="form-group"><label>Lead</label>
                     <select id="task_lead">${leadOptions}</select>
@@ -1033,6 +1106,10 @@
                 date: dueDate || new Date().toISOString().split('T')[0],
                 outcome: 'pending'
             });
+            
+            // Invalidate cache
+            activitiesCache.delete(leadId);
+            
             showToast('Success', 'Task created.');
             closeTaskModal();
             syncNow();
@@ -1046,8 +1123,10 @@
             document.getElementById('taskModal').classList.remove('open');
         }
 
+        // ============================================================
+        // TASK COMPLETE / DELETE
+        // ============================================================
         async function completeTask(taskId) {
-            // Find the task activity and update it
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
             await createActivityRecord({
@@ -1057,12 +1136,12 @@
                 date: new Date().toISOString().split('T')[0],
                 outcome: 'completed'
             });
+            activitiesCache.delete(task.lead_id);
             showToast('Success', 'Task marked as completed.');
             syncNow();
         }
 
         async function deleteTask(taskId) {
-            // We can't delete individual tasks from Google Sheets easily, so we'll mark as completed
             completeTask(taskId);
         }
 
@@ -1088,7 +1167,7 @@
         // ============================================================
         navigateTo('dashboard');
         syncNow();
-        console.log('✅ COILOPS Advanced CRM loaded.');
+        console.log('✅ COILOPS Optimized CRM loaded. Activities lazy-load on demand.');
     </script>
 </body>
 </html>
