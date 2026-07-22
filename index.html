@@ -75,7 +75,7 @@
            SIDEBAR
            ============================================================ */
         .sidebar {
-            width: 240px;
+            width: 280px;
             min-height: 100vh;
             background: var(--bg-card);
             border-right: 1px solid var(--border-color);
@@ -766,18 +766,31 @@
         }
         .bottom-nav .nav-item .badge.hot { background: #ff6b4a; color: #fff; }
 
-        /* Mobile brand header - minimal, clean */
-        .mobile-brand {
+        /* ============================================================
+           MOBILE TOP BAR - FIXED
+           ============================================================ */
+        .mobile-top-bar {
             display: none;
-            padding: 12px 16px 8px 16px;
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 98;
+            background: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
+            padding: 10px 16px;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 56px;
+        }
+        .mobile-top-bar .brand {
+            display: flex;
             align-items: center;
             gap: 10px;
-            background: var(--bg-card);
         }
-        .mobile-brand .brand-icon {
-            width: 32px;
-            height: 32px;
+        .mobile-top-bar .brand .icon {
+            width: 34px;
+            height: 34px;
             border-radius: 6px;
             background: var(--accent-gold);
             display: flex;
@@ -785,22 +798,23 @@
             justify-content: center;
             color: #0a0e17;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 14px;
             overflow: hidden;
             flex-shrink: 0;
         }
-        .mobile-brand .brand-icon img {
+        .mobile-top-bar .brand .icon img {
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
-        .mobile-brand .brand-name {
+        .mobile-top-bar .brand .text {
             font-size: 14px;
             font-weight: 700;
             color: var(--accent-gold);
             letter-spacing: 0.5px;
+            line-height: 1.2;
         }
-        .mobile-brand .brand-name small {
+        .mobile-top-bar .brand .text small {
             font-size: 8px;
             font-weight: 300;
             color: var(--text-muted);
@@ -809,13 +823,28 @@
             margin-top: -2px;
             text-transform: uppercase;
         }
+        .mobile-top-bar .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .mobile-top-bar .menu-btn:hover { color: var(--text-main); }
 
         .sidebar-backdrop {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
+            background: rgba(0,0,0,0.6);
+            z-index: 97;
         }
         .sidebar-backdrop.open { display: block; }
 
@@ -829,25 +858,29 @@
         @media (max-width: 768px) {
             body { padding-bottom: calc(70px + var(--safe-bottom)); }
 
-            .mobile-brand {
+            .mobile-top-bar {
                 display: flex;
             }
 
             .sidebar {
-                display: none;
                 position: fixed;
                 top: 0;
                 left: 0;
                 width: 280px;
                 height: 100vh;
-                z-index: 100;
-                transform: translateX(-100%);
+                z-index: 99;
+                transform: translateX(-105%);
                 border-right: 1px solid var(--border-color);
                 border-radius: 0 16px 16px 0;
                 padding-top: 16px;
+                box-shadow: 4px 0 30px rgba(0,0,0,0.5);
             }
-            .sidebar.open { transform: translateX(0); }
-            .sidebar.open .sidebar-brand .btn-icon { display: block !important; }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar.open .sidebar-brand .btn-icon {
+                display: block !important;
+            }
 
             .main { padding: 12px 12px 80px 12px; }
             .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -890,25 +923,27 @@
             .page-header { flex-direction: column; align-items: stretch; }
             .page-header .actions { width: 100%; justify-content: stretch; }
             .page-header .actions .btn { flex: 1; justify-content: center; }
-            .mobile-brand .brand-name { font-size: 13px; }
-            .mobile-brand .brand-icon { width: 28px; height: 28px; font-size: 10px; }
+            .mobile-top-bar .brand .text { font-size: 13px; }
+            .mobile-top-bar .brand .icon { width: 30px; height: 30px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
 
     <!-- ============================================================
-    MOBILE BRAND HEADER (Clean, minimal)
+    MOBILE TOP BAR - FIXED
     ============================================================ -->
-    <div class="mobile-brand" id="mobileBrand">
-        <div class="brand-icon">
-            <img src="logo.png" alt="GS" onerror="this.style.display='none'; this.parentElement.textContent='GS'; this.parentElement.style.background='var(--accent-gold)'; this.parentElement.style.color='#0a0e17'; this.parentElement.style.fontWeight='800'; this.parentElement.style.fontSize='12px';">
+    <div class="mobile-top-bar" id="mobileTopBar">
+        <div class="brand">
+            <div class="icon">
+                <img src="logo.png" alt="GS" onerror="this.style.display='none'; this.parentElement.textContent='GS'; this.parentElement.style.background='var(--accent-gold)'; this.parentElement.style.color='#0a0e17'; this.parentElement.style.fontWeight='800'; this.parentElement.style.fontSize='14px';">
+            </div>
+            <div class="text">
+                GOLD SQUIRREL
+                <small>studio of innovation..</small>
+            </div>
         </div>
-        <div class="brand-name">
-            GOLD SQUIRREL
-            <small>studio of innovation..</small>
-        </div>
-        <button class="btn-icon" onclick="toggleSidebar()" style="margin-left:auto; font-size:20px; min-height:36px; min-width:36px; display:block;">☰</button>
+        <button class="menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">☰</button>
     </div>
 
     <!-- ============================================================
@@ -969,7 +1004,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Advanced v5.4
+            <strong>COILOPS</strong> · Advanced v5.5
         </div>
     </aside>
 
@@ -1489,7 +1524,7 @@
         }
 
         // ============================================================
-        // SIDEBAR (Mobile)
+        // SIDEBAR (Mobile) - FIXED
         // ============================================================
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -1497,7 +1532,7 @@
             sidebar.classList.toggle('open');
             backdrop.classList.toggle('open');
             const btn = document.getElementById('closeSidebarBtn');
-            if (btn) btn.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+            if (btn) btn.style.display = 'block';
         }
 
         function closeSidebar() {
@@ -2444,6 +2479,15 @@
         });
         document.querySelectorAll('.bottom-nav .nav-item[data-page]').forEach(btn => {
             btn.addEventListener('click', function() { navigateTo(this.dataset.page); });
+        });
+
+        // ============================================================
+        // MOBILE MENU - FIXED
+        // ============================================================
+        document.getElementById('mobileMenuBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSidebar();
         });
 
         // ============================================================
