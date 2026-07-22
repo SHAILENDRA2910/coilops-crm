@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>COILOPS CRM – Advanced</title>
-    <!-- SheetJS for Excel import -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         /* ============================================================
@@ -872,7 +871,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Advanced v5.2
+            <strong>COILOPS</strong> · Advanced v5.3
         </div>
     </aside>
 
@@ -1184,7 +1183,7 @@
         // ============================================================
         const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxtalAlsJY3tMty7_WUeeAm7Wh85tc0G5RGD_MNiXlIefa9qYEY_A_O7Z2ei86RoCA9kQ/exec';
 
-        // Team members - SINGLE SOURCE OF TRUTH
+        // Team members
         const TEAM_MEMBERS = ['Tushar', 'Aditya', 'Vaishnavi'];
 
         // ============================================================
@@ -1359,7 +1358,8 @@
             document.getElementById('dashCount').textContent = leads.length;
             document.getElementById('leadCount').textContent = leads.length;
             document.getElementById('pipeCount').textContent = leads.filter(l => l.status !== 'won' && l.status !== 'lost').length;
-            document.getElementById('teamCount').textContent = leads.filter(l => l.assigned_to && l.assigned_to !== 'unassigned').length;
+            const assignedCount = leads.filter(l => l.assigned_to && l.assigned_to !== 'unassigned' && l.assigned_to !== '').length;
+            document.getElementById('teamCount').textContent = assignedCount;
             document.getElementById('mobileLeadCount').textContent = leads.length;
             
             const pendingTasks = tasks.filter(t => t.status === 'pending');
@@ -1571,8 +1571,11 @@
 
             const sorted = allMembers.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
             
-            if (sorted.every(name => (userStats[name]?.total || 0) === 0)) {
-                container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;grid-column:1/-1;">No team data yet. Assign leads to team members.</div>';
+            // Check if any lead is assigned
+            const hasAssigned = leads.some(l => l.assigned_to && l.assigned_to !== 'unassigned' && l.assigned_to !== '');
+            
+            if (!hasAssigned) {
+                container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;grid-column:1/-1;">No leads assigned yet. Assign leads to team members.</div>';
                 return;
             }
 
@@ -1645,7 +1648,7 @@
                 const matchStage = !stageFilter || l.status === stageFilter;
                 const matchPriority = !priorityFilter || l.priority === priorityFilter;
                 let matchAssigned = true;
-                if (assignedFilter === 'unassigned') matchAssigned = !l.assigned_to || l.assigned_to === 'unassigned';
+                if (assignedFilter === 'unassigned') matchAssigned = !l.assigned_to || l.assigned_to === 'unassigned' || l.assigned_to === '';
                 else if (assignedFilter === 'me') matchAssigned = l.assigned_to === 'You';
                 let matchFilter = true;
                 if (currentFilter === 'hot') matchFilter = l.priority === 'high' && l.status !== 'won' && l.status !== 'lost';
@@ -1766,24 +1769,31 @@
             });
 
             const sorted = allMembers.sort((a, b) => (userStats[b]?.total || 0) - (userStats[a]?.total || 0));
-            container.innerHTML = sorted.map(name => {
-                const stats = userStats[name] || { total: 0, activities: 0, won: 0, rate: 0 };
-                return `<div class="team-stats-card">
-                    <div class="name">${name}</div>
-                    <div class="stat-row">
-                        <span>📋 <span class="num">${stats.total}</span> leads</span>
-                        <span>📞 <span class="num">${stats.activities}</span> act.</span>
-                        <span>🏆 <span class="num">${stats.rate}%</span> win</span>
-                    </div>
-                </div>`;
-            }).join('');
+            const hasAssigned = leads.some(l => l.assigned_to && l.assigned_to !== 'unassigned' && l.assigned_to !== '');
+            
+            if (!hasAssigned) {
+                container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;grid-column:1/-1;">No leads assigned yet.</div>';
+            } else {
+                container.innerHTML = sorted.map(name => {
+                    const stats = userStats[name] || { total: 0, activities: 0, won: 0, rate: 0 };
+                    return `<div class="team-stats-card">
+                        <div class="name">${name}</div>
+                        <div class="stat-row">
+                            <span>📋 <span class="num">${stats.total}</span> leads</span>
+                            <span>📞 <span class="num">${stats.activities}</span> act.</span>
+                            <span>🏆 <span class="num">${stats.rate}%</span> win</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
 
             const tbody = document.getElementById('teamTableBody');
-            if (!filtered.length) {
-                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">👤</div><h3>No leads assigned</h3></div></td></tr>`;
+            const assignedLeads = filtered.filter(l => l.assigned_to && l.assigned_to !== 'unassigned' && l.assigned_to !== '');
+            if (!assignedLeads.length) {
+                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">👤</div><h3>No leads assigned yet</h3></div></td></tr>`;
                 return;
             }
-            tbody.innerHTML = filtered.filter(l => l.assigned_to && l.assigned_to !== 'unassigned').map(l => {
+            tbody.innerHTML = assignedLeads.map(l => {
                 const score = getLeadScore(l);
                 const scoreClass = score > 60 ? 'high' : score > 30 ? 'medium' : 'low';
                 return `<tr>
@@ -1793,7 +1803,7 @@
                     <td><span class="priority-badge ${l.priority||'medium'}">${l.priority||'medium'}</span></td>
                     <td><span class="lead-score ${scoreClass}">${score}</span></td>
                 </tr>`;
-            }).join('') || `<tr><td colspan="5"><div class="empty-state"><div class="icon">📭</div><h3>No leads assigned yet</h3></div></td></tr>`;
+            }).join('');
         }
 
         function renderTeamLeads() { renderTeam(); }
@@ -1987,16 +1997,18 @@
         }
 
         // ============================================================
-        // LEAD DETAIL
+        // LEAD DETAIL – FIXED
         // ============================================================
         function showLeadDetail(company, contact) {
             const lead = leads.find(l => l.company === company && l.contact_name === contact);
-            if (!lead) { showToast('Error', 'Lead not found.'); return; }
+            if (!lead) { 
+                showToast('Error', 'Lead not found.'); 
+                return; 
+            }
             
             const modal = document.getElementById('detailModal');
             document.getElementById('detailTitle').textContent = 'Lead Details';
             
-            // Clean dropdown options - NO DUPLICATES
             const assignedOptions = [
                 { value: '', label: 'Unassigned' },
                 { value: 'You', label: 'You' },
@@ -2022,7 +2034,7 @@
                         <select id="detailAssigned" style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:4px 8px; color:var(--text-main); min-width:140px;">
                             ${optionsHtml}
                         </select>
-                        <button class="btn btn-sm btn-primary" onclick="updateAssigned('${lead.id}')">Update</button>
+                        <button class="btn btn-sm btn-primary" onclick="updateAssigned('${lead.company}','${lead.contact_name}')">Update</button>
                     </div>
                     ${lead.win_reason ? `<div style="grid-column:1/-1;"><span style="color:var(--text-dim);">Win Reason:</span> ${lead.win_reason}</div>` : ''}
                     ${lead.loss_reason ? `<div style="grid-column:1/-1;"><span style="color:var(--text-dim);">Loss Reason:</span> ${lead.loss_reason}</div>` : ''}
@@ -2036,9 +2048,10 @@
             modal.classList.add('open');
         }
 
-        async function updateAssigned(leadId) {
+        // FIXED: Uses company + contact_name instead of lead.id
+        async function updateAssigned(company, contact) {
             const assigned = document.getElementById('detailAssigned').value;
-            const lead = leads.find(l => l.id === leadId);
+            const lead = leads.find(l => l.company === company && l.contact_name === contact);
             if (!lead) {
                 showToast('Error', 'Lead not found.');
                 return;
@@ -2078,7 +2091,6 @@
             const lead = editingLeadId ? leads.find(l => l.company === company && l.contact_name === contact) : null;
             document.getElementById('modalTitle').textContent = editingLeadId ? 'Edit Lead' : 'New Lead';
             
-            // Clean dropdown options - NO DUPLICATES
             const assignedOptions = [
                 { value: '', label: 'Unassigned' },
                 { value: 'You', label: 'You' },
@@ -2161,9 +2173,6 @@
             const contact_name = document.getElementById('f_contact').value.trim();
             if (!company && !contact_name) { showToast('Error','Company or contact required.'); return; }
             
-            const email = document.getElementById('f_email').value.trim();
-            const phone = document.getElementById('f_phone').value.trim();
-            
             const status = document.getElementById('f_status').value;
             let winReason = '', lossReason = '';
             if (status === 'won') {
@@ -2177,8 +2186,8 @@
             const leadData = {
                 company,
                 contact_name,
-                email,
-                phone,
+                email: document.getElementById('f_email').value.trim(),
+                phone: document.getElementById('f_phone').value.trim(),
                 website: document.getElementById('f_website').value.trim(),
                 industry: document.getElementById('f_industry').value.trim(),
                 source: document.getElementById('f_source').value,
