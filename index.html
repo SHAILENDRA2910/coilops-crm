@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>COILOPS CRM – Mobile Enhanced</title>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ09JTE9QUyBDUk0iLCJzaG9ydF9uYW1lIjoiQ09JTE9QUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGEwZTE3IiwidGhlbWVfY29sb3IiOiIjYzVhMDU5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDUwMCA1MDAnPjxyZWN0IHdpZHRoPSc1MDAnIGhlaWdodD0nNTAwJyByeD0nNTAlJyBmaWxsPScjYzVhMDU5Jy8+PHRleHQgeD0nMjUwJyB5PSczMjAnIGZvbnQtc2l6ZT0nMjUwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjMGEwZTE3JyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+R1M8L3RleHQ+PC9zdmc+Iiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn1dfQ==">
     <style>
         /* ============================================================
            VARIABLES & RESET
@@ -50,10 +49,7 @@
             --shadow: 0 8px 30px rgba(0,0,0,0.1);
         }
 
-        body.light-mode .sidebar {
-            background: #ffffff;
-            border-color: #d0d5dc;
-        }
+        body.light-mode .sidebar { background: #ffffff; border-color: #d0d5dc; }
         body.light-mode .sidebar-brand .brand-text .title { color: #1a2b4c; }
         body.light-mode .sidebar-nav .nav-item.active { background: rgba(197,160,89,0.15); }
         body.light-mode .stat-card { background: #ffffff; border-color: #d0d5dc; }
@@ -103,31 +99,33 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            background: transparent;
-            border: none;
-            width: auto;
-            height: auto;
-            max-width: 120px;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: var(--accent-gold);
+            color: #0a0e17;
+            font-weight: 800;
+            font-size: 20px;
+            overflow: hidden;
         }
         .sidebar-brand .logo-icon img {
-            max-height: 50px;
-            width: auto;
-            height: auto;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             display: block;
             mix-blend-mode: screen;
         }
         .sidebar-brand .logo-icon .fallback {
-            display: none;
-            width: 44px;
-            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
             background: var(--accent-gold);
             color: #0a0e17;
             font-weight: 800;
-            font-size: 18px;
+            font-size: 20px;
             border-radius: 8px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
         }
         .sidebar-brand .logo-icon img:not([src]) + .fallback,
         .sidebar-brand .logo-icon img[src=""] + .fallback,
@@ -818,21 +816,6 @@
             .page-header .actions .btn { flex: 1; justify-content: center; }
             .table-toolbar .quick-filters .qf-btn { font-size: 10px; padding: 3px 8px; }
         }
-
-        /* Pull to refresh indicator */
-        .pull-indicator {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            color: var(--text-dim);
-            font-size: 13px;
-        }
-        .pull-indicator.active { display: block; }
-        .pull-indicator .spinner {
-            display: inline-block;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -897,11 +880,6 @@
     ============================================================ -->
     <main class="main" id="mainContent">
 
-        <!-- Pull to refresh indicator -->
-        <div class="pull-indicator" id="pullIndicator">
-            <span class="spinner">🔄</span> Release to refresh
-        </div>
-
         <!-- ======== DASHBOARD ======== -->
         <div id="page-dashboard" class="page-content">
             <div class="page-header">
@@ -949,7 +927,7 @@
             <div class="page-header">
                 <div><h1>Leads <small>Manage prospect database</small></h1></div>
                 <div class="actions">
-                    <button class="btn btn-outline btn-sm" onclick="importCSV()">📥 Import</button>
+                    <button class="btn btn-outline btn-sm" onclick="openImportModal()">📥 Import</button>
                     <button class="btn btn-outline btn-sm" onclick="syncNow()">🔄 Sync</button>
                     <button class="btn btn-primary" onclick="openLeadModal()">+ New Lead</button>
                 </div>
@@ -1178,8 +1156,6 @@
         let editingLeadId = null;
         let isSyncing = false;
         let currentFilter = 'all';
-        let touchStartY = 0;
-        let isPulling = false;
 
         // ============================================================
         // API METHODS
@@ -1297,13 +1273,11 @@
             const target = document.getElementById('page-'+page);
             if (target) target.style.display = 'block';
             
-            // Sidebar
             document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
                 if (el.dataset.page === page) el.classList.add('active');
             });
             
-            // Bottom nav
             document.querySelectorAll('.bottom-nav .nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.bottom-nav .nav-item').forEach(el => {
                 if (el.dataset.page === page) el.classList.add('active');
@@ -1316,7 +1290,6 @@
             else if (page === 'export') renderExport();
             updateBadges();
             
-            // Close sidebar on mobile
             closeSidebar();
         }
 
@@ -1625,9 +1598,9 @@
         }
 
         // ============================================================
-        // IMPORT LEADS (CSV)
+        // IMPORT LEADS (CSV) – FIXED
         // ============================================================
-        function importCSV() {
+        function openImportModal() {
             document.getElementById('importModal').classList.add('open');
         }
 
@@ -1658,40 +1631,65 @@
             reader.onload = async function(e) {
                 const text = e.target.result;
                 const lines = text.split('\n').filter(line => line.trim());
+                
+                if (lines.length < 2) {
+                    showToast('Error', 'CSV file is empty or invalid.');
+                    return;
+                }
+                
                 const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                
+                // Map headers to expected fields
+                const fieldMap = {
+                    'company': 'company',
+                    'contact': 'contact_name',
+                    'contact_name': 'contact_name',
+                    'email': 'email',
+                    'phone': 'phone',
+                    'website': 'website',
+                    'industry': 'industry',
+                    'source': 'source',
+                    'stage': 'status',
+                    'status': 'status',
+                    'priority': 'priority',
+                    'notes': 'notes'
+                };
                 
                 let imported = 0;
                 let failed = 0;
                 
                 for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-                    const lead = {};
-                    headers.forEach((h, idx) => {
-                        if (h) lead[h] = values[idx] || '';
-                    });
-                    
-                    if (!lead.company && !lead.contact) continue;
-                    
                     try {
-                        await saveLeadRecord({
-                            company: lead.company || '',
-                            contact_name: lead.contact || '',
-                            email: lead.email || '',
-                            phone: lead.phone || '',
-                            website: lead.website || '',
-                            industry: lead.industry || '',
-                            source: lead.source || 'other',
-                            status: lead.stage || 'lead',
-                            priority: lead.priority || 'medium',
-                            notes: lead.notes || ''
+                        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                        const lead = {};
+                        
+                        headers.forEach((h, idx) => {
+                            const mapped = fieldMap[h] || h;
+                            if (values[idx]) {
+                                lead[mapped] = values[idx];
+                            }
                         });
+                        
+                        // Skip empty rows
+                        if (!lead.company && !lead.contact_name) continue;
+                        
+                        // Set defaults
+                        lead.source = lead.source || 'other';
+                        lead.status = lead.status || 'lead';
+                        lead.priority = lead.priority || 'medium';
+                        lead.notes = lead.notes || '';
+                        
+                        await saveLeadRecord(lead);
                         imported++;
-                    } catch(e) { failed++; }
+                    } catch(err) {
+                        failed++;
+                        console.warn('Import row failed:', err);
+                    }
                 }
                 
                 closeImportModal();
                 showToast('Import Complete', `✅ ${imported} imported, ${failed} failed.`);
-                syncNow();
+                if (imported > 0) syncNow();
             };
             reader.readAsText(file);
         }
@@ -1712,7 +1710,6 @@
             navigator.clipboard.writeText(email).then(() => {
                 showToast('Copied', `📧 ${email}`);
             }).catch(() => {
-                // Fallback
                 const input = document.createElement('input');
                 input.value = email;
                 document.body.appendChild(input);
@@ -1988,33 +1985,6 @@
         });
 
         // ============================================================
-        // PULL TO REFRESH (Mobile)
-        // ============================================================
-        document.addEventListener('touchstart', function(e) {
-            if (window.scrollY === 0) {
-                touchStartY = e.touches[0].clientY;
-                isPulling = true;
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchmove', function(e) {
-            if (isPulling && window.scrollY === 0) {
-                const pullY = e.touches[0].clientY - touchStartY;
-                if (pullY > 50) {
-                    document.getElementById('pullIndicator').classList.add('active');
-                }
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchend', function() {
-            if (document.getElementById('pullIndicator').classList.contains('active')) {
-                document.getElementById('pullIndicator').classList.remove('active');
-                syncNow();
-            }
-            isPulling = false;
-        }, { passive: true });
-
-        // ============================================================
         // THEME LOAD
         // ============================================================
         const savedTheme = localStorage.getItem('theme');
@@ -2048,7 +2018,6 @@
         // ============================================================
         navigateTo('dashboard');
         syncNow();
-        // Check reminders every 5 minutes
         setInterval(checkReminders, 300000);
         console.log('🐿️ COILOPS Mobile Enhanced CRM loaded.');
     </script>
