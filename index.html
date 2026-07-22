@@ -82,12 +82,18 @@
             padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
             height: 100vh;
             overflow-y: auto;
-            flex-shrink: 0;
+            z-index: 1000;
+            transform: translateX(-105%);
             transition: transform 0.3s ease;
+            box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+        }
+        .sidebar.open {
+            transform: translateX(0);
         }
 
         .sidebar-brand {
@@ -235,6 +241,18 @@
         }
 
         /* ============================================================
+           SIDEBAR BACKDROP
+           ============================================================ */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+        }
+        .sidebar-backdrop.open { display: block; }
+
+        /* ============================================================
            MAIN CONTENT
            ============================================================ */
         .main {
@@ -243,6 +261,7 @@
             overflow-y: auto;
             min-height: 100vh;
             transition: padding 0.3s;
+            margin-top: 0;
         }
 
         .page-header {
@@ -593,7 +612,7 @@
             inset: 0;
             background: rgba(0,0,0,0.75);
             backdrop-filter: blur(4px);
-            z-index: 1000;
+            z-index: 10000;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -689,7 +708,7 @@
             box-shadow: var(--shadow);
             color: var(--text-main);
             font-size: 14px;
-            z-index: 2000;
+            z-index: 10000;
             opacity: 0;
             transform: translateY(20px);
             transition: 0.4s ease;
@@ -733,7 +752,7 @@
             background: var(--bg-card);
             border-top: 1px solid var(--border-color);
             padding: 8px 0 calc(8px + var(--safe-bottom));
-            z-index: 99;
+            z-index: 98;
             justify-content: space-around;
             align-items: center;
             backdrop-filter: blur(10px);
@@ -767,21 +786,22 @@
         .bottom-nav .nav-item .badge.hot { background: #ff6b4a; color: #fff; }
 
         /* ============================================================
-           MOBILE TOP BAR - FIXED
+           MOBILE TOP BAR - FIXED (Always visible)
            ============================================================ */
         .mobile-top-bar {
             display: none;
-            position: sticky;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            z-index: 98;
+            z-index: 9999;
             background: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
             padding: 10px 16px;
             align-items: center;
             justify-content: space-between;
             min-height: 56px;
+            backdrop-filter: blur(10px);
         }
         .mobile-top-bar .brand {
             display: flex;
@@ -839,15 +859,6 @@
         }
         .mobile-top-bar .menu-btn:hover { color: var(--text-main); }
 
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 97;
-        }
-        .sidebar-backdrop.open { display: block; }
-
         /* ============================================================
            RESPONSIVE
            ============================================================ */
@@ -856,7 +867,7 @@
         }
 
         @media (max-width: 768px) {
-            body { padding-bottom: calc(70px + var(--safe-bottom)); }
+            body { padding-top: 60px; padding-bottom: calc(70px + var(--safe-bottom)); }
 
             .mobile-top-bar {
                 display: flex;
@@ -868,7 +879,7 @@
                 left: 0;
                 width: 280px;
                 height: 100vh;
-                z-index: 99;
+                z-index: 10000;
                 transform: translateX(-105%);
                 border-right: 1px solid var(--border-color);
                 border-radius: 0 16px 16px 0;
@@ -931,7 +942,7 @@
 <body>
 
     <!-- ============================================================
-    MOBILE TOP BAR - FIXED
+    MOBILE TOP BAR - FIXED (Always visible on top)
     ============================================================ -->
     <div class="mobile-top-bar" id="mobileTopBar">
         <div class="brand">
@@ -1004,7 +1015,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Advanced v5.5
+            <strong>COILOPS</strong> · Advanced v5.6
         </div>
     </aside>
 
@@ -2482,12 +2493,17 @@
         });
 
         // ============================================================
-        // MOBILE MENU - FIXED
+        // MOBILE MENU - FIXED (Works!)
         // ============================================================
-        document.getElementById('mobileMenuBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleSidebar();
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            if (menuBtn) {
+                menuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSidebar();
+                });
+            }
         });
 
         // ============================================================
