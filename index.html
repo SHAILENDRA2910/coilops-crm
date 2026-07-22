@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COILOPS CRM – Polished UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>COILOPS CRM – Mobile Enhanced</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ09JTE9QUyBDUk0iLCJzaG9ydF9uYW1lIjoiQ09JTE9QUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGEwZTE3IiwidGhlbWVfY29sb3IiOiIjYzVhMDU5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDUwMCA1MDAnPjxyZWN0IHdpZHRoPSc1MDAnIGhlaWdodD0nNTAwJyByeD0nNTAlJyBmaWxsPScjYzVhMDU5Jy8+PHRleHQgeD0nMjUwJyB5PSczMjAnIGZvbnQtc2l6ZT0nMjUwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjMGEwZTE3JyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+R1M8L3RleHQ+PC9zdmc+Iiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn1dfQ==">
     <style>
         /* ============================================================
            VARIABLES & RESET
@@ -23,6 +24,7 @@
             --radius: 12px;
             --transition: 0.25s ease;
             --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         body {
@@ -33,7 +35,35 @@
             min-height: 100vh;
             line-height: 1.6;
             transition: background 0.3s;
+            padding-bottom: calc(70px + var(--safe-bottom));
         }
+
+        /* Light Mode */
+        body.light-mode {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-input: #e8ecf1;
+            --border-color: #d0d5dc;
+            --text-main: #1a2634;
+            --text-muted: #4a5a72;
+            --text-dim: #6a7a92;
+            --shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        body.light-mode .sidebar {
+            background: #ffffff;
+            border-color: #d0d5dc;
+        }
+        body.light-mode .sidebar-brand .brand-text .title { color: #1a2b4c; }
+        body.light-mode .sidebar-nav .nav-item.active { background: rgba(197,160,89,0.15); }
+        body.light-mode .stat-card { background: #ffffff; border-color: #d0d5dc; }
+        body.light-mode .table-wrap { background: #ffffff; border-color: #d0d5dc; }
+        body.light-mode table th { background: #f0f2f5; color: #4a5a72; border-color: #d0d5dc; }
+        body.light-mode table td { border-color: #e8ecf1; color: #1a2634; }
+        body.light-mode .modal { background: #ffffff; border-color: #d0d5dc; }
+        body.light-mode .form-group input,
+        body.light-mode .form-group select,
+        body.light-mode .form-group textarea { background: #f0f2f5; color: #1a2634; border-color: #d0d5dc; }
 
         ::-webkit-scrollbar { width:6px; height:6px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
@@ -41,7 +71,7 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
 
         /* ============================================================
-           SIDEBAR
+           SIDEBAR (Desktop)
            ============================================================ */
         .sidebar {
             width: 240px;
@@ -56,7 +86,7 @@
             height: 100vh;
             overflow-y: auto;
             flex-shrink: 0;
-            transition: width 0.3s ease;
+            transition: width 0.3s ease, transform 0.3s ease;
         }
 
         .sidebar-brand {
@@ -68,7 +98,6 @@
             margin-bottom: 24px;
         }
 
-        /* Logo container — auto-size, no crop, transparent background */
         .sidebar-brand .logo-icon {
             display: flex;
             align-items: center;
@@ -85,9 +114,8 @@
             width: auto;
             height: auto;
             display: block;
-            mix-blend-mode: screen; /* if your PNG has a pure black background */
+            mix-blend-mode: screen;
         }
-        /* Fallback text (GS) – hidden by default, only shows if image fails */
         .sidebar-brand .logo-icon .fallback {
             display: none;
             width: 44px;
@@ -101,19 +129,13 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        /* When image fails, show fallback and hide broken image icon */
         .sidebar-brand .logo-icon img:not([src]) + .fallback,
         .sidebar-brand .logo-icon img[src=""] + .fallback,
         .sidebar-brand .logo-icon img[onerror] + .fallback {
             display: flex;
         }
-        .sidebar-brand .logo-icon img[onerror] {
-            display: none;
-        }
+        .sidebar-brand .logo-icon img[onerror] { display: none; }
 
-        .sidebar-brand .brand-text {
-            flex: 1;
-        }
         .sidebar-brand .brand-text .title {
             font-size: 16px;
             font-weight: 800;
@@ -171,15 +193,8 @@
             color: var(--text-muted);
             transition: 0.2s;
         }
-        .sidebar-nav .nav-item .badge.hot {
-            background: #ff6b4a;
-            color: #fff;
-            animation: pulse-badge 2s infinite;
-        }
-        .sidebar-nav .nav-item .badge.task {
-            background: #ffd93d;
-            color: #0a0e17;
-        }
+        .sidebar-nav .nav-item .badge.hot { background: #ff6b4a; color: #fff; animation: pulse-badge 2s infinite; }
+        .sidebar-nav .nav-item .badge.task { background: #ffd93d; color: #0a0e17; }
 
         @keyframes pulse-badge {
             0%, 100% { transform: scale(1); }
@@ -206,13 +221,7 @@
             border-top: 1px solid var(--border-color);
             margin-top: 8px;
         }
-        .sync-status .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            transition: 0.3s;
-        }
+        .sync-status .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: 0.3s; }
         .sync-status .dot.online { background: #4ac49a; }
         .sync-status .dot.syncing { background: var(--accent-gold); animation: pulse 1s infinite; }
         .sync-status .dot.offline { background: #8a3a3a; }
@@ -224,7 +233,7 @@
         }
 
         /* ============================================================
-           MAIN CONTENT (unchanged – full functionality)
+           MAIN CONTENT
            ============================================================ */
         .main {
             flex: 1;
@@ -275,6 +284,8 @@
             background: var(--border-color);
             color: var(--text-main);
             text-decoration: none;
+            touch-action: manipulation;
+            min-height: 44px;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
         .btn-primary { background: var(--accent-gold); color: #0a0e17; }
@@ -282,7 +293,7 @@
         .btn-outline { background: transparent; border: 1px solid var(--border-color); }
         .btn-outline:hover { background: var(--border-color); }
         .btn-danger { background: #8a3a3a; color: #fff; }
-        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; min-height: 32px; }
         .btn-success { background: #2a9a4a; color: #fff; }
 
         .btn-icon {
@@ -295,6 +306,8 @@
             color: var(--text-muted);
             cursor: pointer;
             transition: var(--transition);
+            min-height: 36px;
+            min-width: 36px;
         }
         .btn-icon:hover {
             background: var(--border-color);
@@ -321,18 +334,8 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
-        .stat-card .stat-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-        }
-        .stat-card .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-top: 4px;
-        }
+        .stat-card .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 4px; }
         .stat-card .stat-value.gold { color: var(--accent-gold); }
         .stat-card .stat-value.blue { color: var(--accent-blue); }
         .stat-card .stat-value.green { color: #4ac49a; }
@@ -370,11 +373,7 @@
             align-items: center;
         }
         .dashboard-grid .card .task-item:last-child { border-bottom: none; }
-        .dashboard-grid .card .task-item .task-due {
-            font-size: 11px;
-            color: var(--text-dim);
-            margin-left: auto;
-        }
+        .dashboard-grid .card .task-item .task-due { font-size: 11px; color: var(--text-dim); margin-left: auto; }
         .dashboard-grid .card .task-item .task-due.overdue { color: #ff6b4a; font-weight: 600; }
 
         .table-wrap {
@@ -418,12 +417,7 @@
             width: 100%;
             outline: none;
         }
-        .table-toolbar .filter-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
+        .table-toolbar .filter-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .table-toolbar select {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -435,11 +429,7 @@
             transition: var(--transition);
         }
         .table-toolbar select:focus { border-color: var(--accent-gold); }
-        .table-toolbar .quick-filters {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+        .table-toolbar .quick-filters { display: flex; gap: 6px; flex-wrap: wrap; }
         .table-toolbar .quick-filters .qf-btn {
             padding: 4px 12px;
             border-radius: 20px;
@@ -464,11 +454,7 @@
             border-collapse: collapse;
             font-size: 13px;
         }
-        table thead {
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
+        table thead { position: sticky; top: 0; z-index: 5; }
         table th {
             text-align: left;
             padding: 12px 16px;
@@ -532,11 +518,7 @@
         .last-contact.overdue { color: #ff6b4a; font-weight: 600; }
         .activity-count { font-size: 11px; color: var(--text-dim); }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-dim);
-        }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); }
         .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
         .empty-state h3 { color: var(--text-muted); margin-bottom: 6px; }
 
@@ -587,6 +569,8 @@
             cursor: pointer;
             padding: 0 4px;
             transition: 0.2s;
+            min-height: 44px;
+            min-width: 44px;
         }
         .modal-close:hover { color: var(--text-main); transform: rotate(90deg); }
 
@@ -606,13 +590,14 @@
             background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 9px 12px;
+            padding: 12px 14px;
             color: var(--text-main);
-            font-size: 14px;
+            font-size: 16px;
             font-family: inherit;
             outline: none;
             width: 100%;
             transition: var(--transition);
+            min-height: 44px;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             border-color: var(--accent-gold);
@@ -627,14 +612,7 @@
             border-top: 1px solid var(--border-color);
         }
 
-        .lead-detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
+        .lead-detail-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
         .lead-detail-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -659,37 +637,30 @@
         .activity-timeline .activity-icon { font-size: 20px; width: 36px; text-align: center; flex-shrink: 0; margin-top: 2px; }
         .activity-timeline .activity-content { flex: 1; }
         .activity-timeline .activity-content .desc { font-size: 14px; color: var(--text-main); }
-        .activity-timeline .activity-content .meta {
-            font-size: 12px;
-            color: var(--text-dim);
-            margin-top: 2px;
-        }
+        .activity-timeline .activity-content .meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
         .activity-timeline .activity-content .meta strong { color: var(--text-muted); }
         .activity-timeline .activity-content .meta .due { color: #ff6b4a; font-weight: 600; }
 
-        .add-activity-form {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
+        .add-activity-form { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
         .add-activity-form select, .add-activity-form input {
             background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 7px 12px;
+            padding: 10px 12px;
             color: var(--text-main);
-            font-size: 13px;
+            font-size: 16px;
             outline: none;
             transition: var(--transition);
+            min-height: 44px;
         }
         .add-activity-form select:focus, .add-activity-form input:focus { border-color: var(--accent-gold); }
         .add-activity-form input { flex: 1; min-width: 150px; }
 
         .toast {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 80px;
+            right: 20px;
+            left: 20px;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 10px;
@@ -703,92 +674,188 @@
             transition: 0.4s ease;
             pointer-events: none;
             max-width: 420px;
+            margin: 0 auto;
             border-left: 4px solid var(--accent-gold);
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-        .toast .toast-title {
-            font-weight: 600;
-            color: var(--accent-gold);
-            margin-bottom: 2px;
-        }
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast .toast-title { font-weight: 600; color: var(--accent-gold); margin-bottom: 2px; }
         .toast .toast-message { font-size: 13px; color: var(--text-muted); }
 
+        /* ============================================================
+           FLOATING ACTION BUTTON (FAB) – Mobile Only
+           ============================================================ */
+        .fab {
+            display: none;
+            position: fixed;
+            bottom: calc(80px + var(--safe-bottom));
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            color: #0a0e17;
+            border: none;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(197,160,89,0.4);
+            transition: var(--transition);
+            z-index: 100;
+            touch-action: manipulation;
+        }
+        .fab:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(197,160,89,0.6); }
+        .fab:active { transform: scale(0.95); }
+
+        /* ============================================================
+           BOTTOM NAV – Mobile Only
+           ============================================================ */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 0 calc(8px + var(--safe-bottom));
+            z-index: 99;
+            justify-content: space-around;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 10px;
+            cursor: pointer;
+            padding: 4px 12px;
+            transition: var(--transition);
+            touch-action: manipulation;
+            min-height: 44px;
+            min-width: 44px;
+        }
+        .bottom-nav .nav-item .icon { font-size: 22px; }
+        .bottom-nav .nav-item.active { color: var(--accent-gold); }
+        .bottom-nav .nav-item .badge {
+            background: var(--border-color);
+            padding: 0 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: -4px;
+        }
+        .bottom-nav .nav-item .badge.hot { background: #ff6b4a; color: #fff; }
+
+        /* ============================================================
+           RESPONSIVE – Tablet & Mobile
+           ============================================================ */
         @media (max-width: 1024px) {
             .dashboard-grid { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 768px) {
-            body { flex-direction: column; }
+            body { padding-bottom: calc(70px + var(--safe-bottom)); }
+
             .sidebar {
-                width: 100%;
-                min-height: auto;
-                height: auto;
-                position: relative;
-                padding: 16px;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                gap: 10px;
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                z-index: 100;
+                transform: translateX(-100%);
+                border-right: 1px solid var(--border-color);
+                border-radius: 0 16px 16px 0;
             }
-            .sidebar-brand { margin-bottom: 0; padding-bottom: 0; border-bottom: none; flex: 1; }
-            .sidebar-nav {
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 4px;
-                flex: 0 1 auto;
-                width: 100%;
-                order: 3;
-                border-top: 1px solid var(--border-color);
-                padding-top: 12px;
-                margin-top: 6px;
+            .sidebar.open { transform: translateX(0); }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 99;
             }
-            .sidebar-nav .nav-item { padding: 6px 12px; font-size: 13px; width: auto; }
-            .sidebar-footer { display: none; }
-            .sync-status { width: 100%; order: 4; }
-            .main { padding: 16px; }
-            .stats-grid { grid-template-columns: repeat(3, 1fr); }
-            .dashboard-grid { grid-template-columns: 1fr; }
+            .sidebar-backdrop.open { display: block; }
+
+            .main { padding: 16px; padding-bottom: 80px; }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
             .form-row { grid-template-columns: 1fr; }
             .form-row-3 { grid-template-columns: 1fr; }
             .page-header h1 { font-size: 22px; }
-            .modal { padding: 20px; margin: 10px; }
+            .page-header h1 small { font-size: 13px; }
+            .modal { padding: 20px; margin: 10px; max-height: 95vh; }
             .table-toolbar { flex-direction: column; align-items: stretch; }
             .table-toolbar .search-box { min-width: auto; }
             .table-toolbar .filter-group { flex-wrap: wrap; }
             .add-activity-form { flex-direction: column; }
             .add-activity-form input { min-width: auto; }
             .lead-detail-info { grid-template-columns: 1fr; }
+            table td, table th { padding: 8px 10px; font-size: 12px; }
+
+            .fab { display: flex; align-items: center; justify-content: center; }
+            .bottom-nav { display: flex; }
+            .sidebar-brand .logo-icon img { max-height: 40px; }
+
+            .toast { bottom: 90px; left: 16px; right: 16px; max-width: none; }
         }
 
         @media (max-width: 500px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
             .stat-card { padding: 12px 14px; }
             .stat-card .stat-value { font-size: 20px; }
-            table td, table th { padding: 8px 10px; font-size: 12px; }
+            table td, table th { padding: 6px 8px; font-size: 11px; }
+            .btn { font-size: 12px; padding: 8px 14px; min-height: 40px; }
+            .form-group input, .form-group select, .form-group textarea { font-size: 15px; padding: 10px 12px; min-height: 40px; }
+            .page-header .actions { width: 100%; justify-content: stretch; }
+            .page-header .actions .btn { flex: 1; justify-content: center; }
+            .table-toolbar .quick-filters .qf-btn { font-size: 10px; padding: 3px 8px; }
         }
+
+        /* Pull to refresh indicator */
+        .pull-indicator {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+        .pull-indicator.active { display: block; }
+        .pull-indicator .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+
     <!-- ============================================================
-    SIDEBAR – Fixed logo (no crop, no "G")
+    SIDEBAR BACKDROP (Mobile)
     ============================================================ -->
-    <aside class="sidebar">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+    <!-- ============================================================
+    SIDEBAR
+    ============================================================ -->
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon">
-                <!-- Upload logo.png to the repository root -->
-                <img src="logo.png" alt="Gold Squirrel Studio">
+                <img src="logo.png" alt="Gold Squirrel Studio" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="fallback">GS</div>
             </div>
             <div class="brand-text">
                 <div class="title">GOLD SQUIRREL</div>
                 <span class="sub">studio of innovation..</span>
             </div>
+            <button class="btn-icon" onclick="closeSidebar()" style="margin-left:auto; display:none;" id="closeSidebarBtn">✕</button>
         </div>
 
         <nav class="sidebar-nav">
@@ -821,24 +888,30 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Polished UI v3.3
+            <strong>COILOPS</strong> · Mobile Enhanced v4.0
         </div>
     </aside>
 
     <!-- ============================================================
-    MAIN CONTENT (unchanged – same as before)
+    MAIN CONTENT
     ============================================================ -->
     <main class="main" id="mainContent">
+
+        <!-- Pull to refresh indicator -->
+        <div class="pull-indicator" id="pullIndicator">
+            <span class="spinner">🔄</span> Release to refresh
+        </div>
 
         <!-- ======== DASHBOARD ======== -->
         <div id="page-dashboard" class="page-content">
             <div class="page-header">
                 <div>
-                    <h1>Dashboard <small>Live CRM — Google Sheets Backend</small></h1>
+                    <h1>Dashboard <small>Live CRM — Mobile Enhanced</small></h1>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary" onclick="openLeadModal()">+ New Lead</button>
+                    <button class="btn btn-outline btn-sm" onclick="toggleTheme()">🌓</button>
                     <button class="btn btn-outline btn-sm" onclick="syncNow()">🔄 Sync Now</button>
+                    <button class="btn btn-primary" onclick="openLeadModal()">+ New Lead</button>
                 </div>
             </div>
 
@@ -876,8 +949,9 @@
             <div class="page-header">
                 <div><h1>Leads <small>Manage prospect database</small></h1></div>
                 <div class="actions">
-                    <button class="btn btn-primary" onclick="openLeadModal()">+ New Lead</button>
+                    <button class="btn btn-outline btn-sm" onclick="importCSV()">📥 Import</button>
                     <button class="btn btn-outline btn-sm" onclick="syncNow()">🔄 Sync</button>
+                    <button class="btn btn-primary" onclick="openLeadModal()">+ New Lead</button>
                 </div>
             </div>
 
@@ -991,7 +1065,40 @@
     </main>
 
     <!-- ============================================================
-    MODALS & TOAST (unchanged)
+    FLOATING ACTION BUTTON (FAB) – Mobile
+    ============================================================ -->
+    <button class="fab" id="fab" onclick="openLeadModal()" aria-label="Add New Lead">+</button>
+
+    <!-- ============================================================
+    BOTTOM NAVIGATION – Mobile
+    ============================================================ -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-page="dashboard">
+            <span class="icon">📊</span>
+            Dashboard
+        </button>
+        <button class="nav-item" data-page="leads">
+            <span class="icon">👤</span>
+            Leads
+            <span class="badge" id="mobileLeadCount">0</span>
+        </button>
+        <button class="nav-item" data-page="pipeline">
+            <span class="icon">📋</span>
+            Pipeline
+        </button>
+        <button class="nav-item" data-page="tasks">
+            <span class="icon">✅</span>
+            Tasks
+            <span class="badge hot" id="mobileTaskCount">0</span>
+        </button>
+        <button class="nav-item" data-page="export">
+            <span class="icon">📤</span>
+            Export
+        </button>
+    </nav>
+
+    <!-- ============================================================
+    MODALS
     ============================================================ -->
     <div class="modal-overlay" id="leadModal">
         <div class="modal">
@@ -1007,13 +1114,35 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <div class="modal-header"><h2>Import Leads</h2><button class="modal-close" onclick="closeImportModal()">✕</button></div>
+            <div class="modal-body">
+                <div class="form-group full">
+                    <label>Upload CSV/Excel File</label>
+                    <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="padding:12px;min-height:44px;">
+                    <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">
+                        Format: Company, Contact, Email, Phone, Website, Industry, Source, Stage, Priority, Notes
+                    </div>
+                    <div style="margin-top:8px;">
+                        <button class="btn btn-sm btn-outline" onclick="downloadTemplate()">📄 Download Template</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" onclick="closeImportModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="processImport()">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast">
         <div class="toast-title" id="toastTitle">Success</div>
         <div class="toast-message" id="toastMessage">Action completed.</div>
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT ENGINE (exactly the same as before)
+    JAVASCRIPT ENGINE – Mobile Enhanced
     ============================================================ -->
     <script>
         // ============================================================
@@ -1049,6 +1178,8 @@
         let editingLeadId = null;
         let isSyncing = false;
         let currentFilter = 'all';
+        let touchStartY = 0;
+        let isPulling = false;
 
         // ============================================================
         // API METHODS
@@ -1072,7 +1203,7 @@
         async function createActivityRecord(actData) { return await ApiClient.execute('saveActivity', { data: actData }); }
 
         // ============================================================
-        // SYNC ENGINE (fast)
+        // SYNC ENGINE
         // ============================================================
         async function syncNow() {
             if (isSyncing) return;
@@ -1165,35 +1296,82 @@
             document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
             const target = document.getElementById('page-'+page);
             if (target) target.style.display = 'block';
+            
+            // Sidebar
             document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
                 if (el.dataset.page === page) el.classList.add('active');
             });
+            
+            // Bottom nav
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(el => {
+                if (el.dataset.page === page) el.classList.add('active');
+            });
+            
             if (page === 'dashboard') renderDashboard();
             else if (page === 'leads') renderLeads();
             else if (page === 'pipeline') renderPipeline();
             else if (page === 'tasks') { renderTasks(); loadTasks(); }
             else if (page === 'export') renderExport();
             updateBadges();
+            
+            // Close sidebar on mobile
+            closeSidebar();
         }
 
         function updateBadges() {
             document.getElementById('dashCount').textContent = leads.length;
             document.getElementById('leadCount').textContent = leads.length;
             document.getElementById('pipeCount').textContent = leads.filter(l => l.status !== 'won' && l.status !== 'lost').length;
+            document.getElementById('mobileLeadCount').textContent = leads.length;
+            
             const pendingTasks = tasks.filter(t => t.status === 'pending');
             const overdueTasks = pendingTasks.filter(t => t.due_date && new Date(t.due_date) < new Date());
             const badge = document.getElementById('taskCount');
+            const mobileBadge = document.getElementById('mobileTaskCount');
+            
             if (overdueTasks.length > 0) {
                 badge.className = 'badge hot';
                 badge.textContent = overdueTasks.length + ' overdue';
+                mobileBadge.className = 'badge hot';
+                mobileBadge.textContent = overdueTasks.length;
             } else if (pendingTasks.length > 0) {
                 badge.className = 'badge task';
                 badge.textContent = pendingTasks.length;
+                mobileBadge.className = 'badge';
+                mobileBadge.textContent = pendingTasks.length;
             } else {
                 badge.className = 'badge';
                 badge.textContent = '0';
+                mobileBadge.className = 'badge';
+                mobileBadge.textContent = '0';
             }
+        }
+
+        // ============================================================
+        // SIDEBAR (Mobile)
+        // ============================================================
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('open');
+            backdrop.classList.toggle('open');
+            document.getElementById('closeSidebarBtn').style.display = window.innerWidth <= 768 ? 'block' : 'none';
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarBackdrop').classList.remove('open');
+        }
+
+        // ============================================================
+        // THEME TOGGLE
+        // ============================================================
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
         }
 
         // ============================================================
@@ -1361,6 +1539,7 @@
                             <button class="btn-icon" onclick="openLeadModal('${l.company}','${l.contact_name}')" title="Edit">✏️</button>
                             <button class="btn-icon ${isHot ? 'hot' : ''}" onclick="addTaskFromLead('${l.company}','${l.contact_name}')" title="Add Task">✅</button>
                             <button class="btn-icon" onclick="deleteLead('${l.company}','${l.contact_name}')" title="Delete">🗑️</button>
+                            <button class="btn-icon" onclick="copyLeadEmail('${l.email}')" title="Copy Email">📧</button>
                         </td>
                     </tr>
                 `;
@@ -1446,6 +1625,78 @@
         }
 
         // ============================================================
+        // IMPORT LEADS (CSV)
+        // ============================================================
+        function importCSV() {
+            document.getElementById('importModal').classList.add('open');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('open');
+        }
+
+        function downloadTemplate() {
+            const headers = ['Company','Contact','Email','Phone','Website','Industry','Source','Stage','Priority','Notes'];
+            const sample = ['Acme Corp','John Doe','john@acme.com','+91 98765 43210','https://acme.com','Steel Processing','linkedin','lead','high','Interested in MES'];
+            let csv = headers.join(',') + '\n' + sample.join(',') + '\n';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'COILOPS_Import_Template.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Downloaded', 'Template downloaded.');
+        }
+
+        async function processImport() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            if (!file) { showToast('Error', 'Please select a CSV file.'); return; }
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                
+                let imported = 0;
+                let failed = 0;
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    const lead = {};
+                    headers.forEach((h, idx) => {
+                        if (h) lead[h] = values[idx] || '';
+                    });
+                    
+                    if (!lead.company && !lead.contact) continue;
+                    
+                    try {
+                        await saveLeadRecord({
+                            company: lead.company || '',
+                            contact_name: lead.contact || '',
+                            email: lead.email || '',
+                            phone: lead.phone || '',
+                            website: lead.website || '',
+                            industry: lead.industry || '',
+                            source: lead.source || 'other',
+                            status: lead.stage || 'lead',
+                            priority: lead.priority || 'medium',
+                            notes: lead.notes || ''
+                        });
+                        imported++;
+                    } catch(e) { failed++; }
+                }
+                
+                closeImportModal();
+                showToast('Import Complete', `✅ ${imported} imported, ${failed} failed.`);
+                syncNow();
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================================
         // HELPERS
         // ============================================================
         function formatDate(d) {
@@ -1456,7 +1707,21 @@
             } catch(e) { return d; }
         }
 
-        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,4); }
+        function copyLeadEmail(email) {
+            if (!email) { showToast('Info', 'No email to copy.'); return; }
+            navigator.clipboard.writeText(email).then(() => {
+                showToast('Copied', `📧 ${email}`);
+            }).catch(() => {
+                // Fallback
+                const input = document.createElement('input');
+                input.value = email;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('Copied', `📧 ${email}`);
+            });
+        }
 
         // ============================================================
         // LEAD UI ACTIONS
@@ -1708,19 +1973,84 @@
             document.getElementById('toastMessage').textContent = msg;
             const el = document.getElementById('toast');
             el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 3500);
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
         }
 
+        // ============================================================
+        // SIDEBAR NAV (Desktop) & BOTTOM NAV (Mobile)
+        // ============================================================
         document.querySelectorAll('.sidebar-nav .nav-item[data-page]').forEach(btn => {
             btn.addEventListener('click', function() { navigateTo(this.dataset.page); });
         });
+        document.querySelectorAll('.bottom-nav .nav-item[data-page]').forEach(btn => {
+            btn.addEventListener('click', function() { navigateTo(this.dataset.page); });
+        });
+
+        // ============================================================
+        // PULL TO REFRESH (Mobile)
+        // ============================================================
+        document.addEventListener('touchstart', function(e) {
+            if (window.scrollY === 0) {
+                touchStartY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (isPulling && window.scrollY === 0) {
+                const pullY = e.touches[0].clientY - touchStartY;
+                if (pullY > 50) {
+                    document.getElementById('pullIndicator').classList.add('active');
+                }
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function() {
+            if (document.getElementById('pullIndicator').classList.contains('active')) {
+                document.getElementById('pullIndicator').classList.remove('active');
+                syncNow();
+            }
+            isPulling = false;
+        }, { passive: true });
+
+        // ============================================================
+        // THEME LOAD
+        // ============================================================
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        }
+
+        // ============================================================
+        // REQUEST NOTIFICATION PERMISSION
+        // ============================================================
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // ============================================================
+        // CHECK REMINDERS
+        // ============================================================
+        function checkReminders() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayTasks = tasks.filter(t => t.due_date === today && t.status === 'pending');
+            if (todayTasks.length > 0 && Notification.permission === 'granted') {
+                new Notification('📅 COILOPS Reminder', {
+                    body: `You have ${todayTasks.length} task${todayTasks.length > 1 ? 's' : ''} due today!`,
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23c5a059"/><text x="50" y="68" font-size="60" text-anchor="middle" fill="%230a0e17" font-family="sans-serif">📋</text></svg>'
+                });
+            }
+        }
 
         // ============================================================
         // INIT
         // ============================================================
         navigateTo('dashboard');
         syncNow();
-        console.log('✅ COILOPS Polished UI CRM loaded.');
+        // Check reminders every 5 minutes
+        setInterval(checkReminders, 300000);
+        console.log('🐿️ COILOPS Mobile Enhanced CRM loaded.');
     </script>
 </body>
 </html>
