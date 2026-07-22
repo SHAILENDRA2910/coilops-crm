@@ -68,31 +68,30 @@
             margin-bottom: 24px;
         }
 
-        /* Logo container — no background, just clean image */
+        /* Logo container — auto-size, no crop, transparent background */
         .sidebar-brand .logo-icon {
-            width: 44px;
-            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            overflow: hidden;
-            border: none;
             background: transparent;
+            border: none;
+            width: auto;
+            height: auto;
+            max-width: 120px;
         }
         .sidebar-brand .logo-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            max-height: 50px;
+            width: auto;
+            height: auto;
             display: block;
-            /* If your logo has a pure black background, this makes it transparent */
-            mix-blend-mode: screen;
+            mix-blend-mode: screen; /* if your PNG has a pure black background */
         }
-        /* Fallback text (GS) – only appears if image fails */
+        /* Fallback text (GS) – hidden by default, only shows if image fails */
         .sidebar-brand .logo-icon .fallback {
             display: none;
-            width: 100%;
-            height: 100%;
+            width: 44px;
+            height: 44px;
             background: var(--accent-gold);
             color: #0a0e17;
             font-weight: 800;
@@ -100,11 +99,16 @@
             border-radius: 8px;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
+        /* When image fails, show fallback and hide broken image icon */
         .sidebar-brand .logo-icon img:not([src]) + .fallback,
         .sidebar-brand .logo-icon img[src=""] + .fallback,
         .sidebar-brand .logo-icon img[onerror] + .fallback {
             display: flex;
+        }
+        .sidebar-brand .logo-icon img[onerror] {
+            display: none;
         }
 
         .sidebar-brand .brand-text {
@@ -220,7 +224,7 @@
         }
 
         /* ============================================================
-           MAIN CONTENT
+           MAIN CONTENT (unchanged – full functionality)
            ============================================================ */
         .main {
             flex: 1;
@@ -230,9 +234,6 @@
             transition: padding 0.3s;
         }
 
-        /* ============================================================
-           HEADER
-           ============================================================ */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -260,9 +261,6 @@
             flex-wrap: wrap;
         }
 
-        /* ============================================================
-           BUTTONS
-           ============================================================ */
         .btn {
             padding: 9px 20px;
             border-radius: 8px;
@@ -305,9 +303,6 @@
         }
         .btn-icon.hot:hover { background: rgba(255,107,74,0.2); color: #ff6b4a; }
 
-        /* ============================================================
-           STAT CARDS
-           ============================================================ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -345,9 +340,6 @@
         .stat-card .stat-value.hot { color: #ff6b4a; }
         .stat-card .stat-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 
-        /* ============================================================
-           DASHBOARD GRID (cards)
-           ============================================================ */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -385,9 +377,6 @@
         }
         .dashboard-grid .card .task-item .task-due.overdue { color: #ff6b4a; font-weight: 600; }
 
-        /* ============================================================
-           TABLE
-           ============================================================ */
         .table-wrap {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -501,7 +490,6 @@
         table tr:hover td { background: rgba(255,255,255,0.02); }
         table tr.hot td { border-left: 3px solid #ff6b4a; }
 
-        /* Status & priority badges */
         .status-badge {
             display: inline-block;
             padding: 3px 12px;
@@ -544,7 +532,6 @@
         .last-contact.overdue { color: #ff6b4a; font-weight: 600; }
         .activity-count { font-size: 11px; color: var(--text-dim); }
 
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -553,9 +540,6 @@
         .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
         .empty-state h3 { color: var(--text-muted); margin-bottom: 6px; }
 
-        /* ============================================================
-           MODAL
-           ============================================================ */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -643,9 +627,6 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* ============================================================
-           LEAD DETAIL
-           ============================================================ */
         .lead-detail-header {
             display: flex;
             justify-content: space-between;
@@ -705,9 +686,6 @@
         .add-activity-form select:focus, .add-activity-form input:focus { border-color: var(--accent-gold); }
         .add-activity-form input { flex: 1; min-width: 150px; }
 
-        /* ============================================================
-           TOAST
-           ============================================================ */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -739,9 +717,6 @@
         }
         .toast .toast-message { font-size: 13px; color: var(--text-muted); }
 
-        /* ============================================================
-           RESPONSIVE
-           ============================================================ */
         @media (max-width: 1024px) {
             .dashboard-grid { grid-template-columns: 1fr 1fr; }
         }
@@ -801,13 +776,13 @@
 </head>
 <body>
     <!-- ============================================================
-    SIDEBAR – Logo without gold box
+    SIDEBAR – Fixed logo (no crop, no "G")
     ============================================================ -->
     <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon">
-                <!-- Upload your logo.png to the repository root -->
-                <img src="logo.png" alt="Gold Squirrel Studio" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <!-- Upload logo.png to the repository root -->
+                <img src="logo.png" alt="Gold Squirrel Studio">
                 <div class="fallback">GS</div>
             </div>
             <div class="brand-text">
@@ -1038,7 +1013,7 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT ENGINE (exactly the same as before – no changes)
+    JAVASCRIPT ENGINE (exactly the same as before)
     ============================================================ -->
     <script>
         // ============================================================
