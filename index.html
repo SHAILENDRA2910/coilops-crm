@@ -68,28 +68,43 @@
             margin-bottom: 24px;
         }
 
+        /* Logo container — no background, just clean image */
         .sidebar-brand .logo-icon {
             width: 44px;
             height: 44px;
-            border-radius: 8px;
-            background: var(--accent-gold);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: 800;
-            color: #0a0e17;
             flex-shrink: 0;
-            letter-spacing: 1px;
             overflow: hidden;
             border: none;
+            background: transparent;
         }
         .sidebar-brand .logo-icon img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             display: block;
+            /* If your logo has a pure black background, this makes it transparent */
             mix-blend-mode: screen;
+        }
+        /* Fallback text (GS) – only appears if image fails */
+        .sidebar-brand .logo-icon .fallback {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-gold);
+            color: #0a0e17;
+            font-weight: 800;
+            font-size: 18px;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-brand .logo-icon img:not([src]) + .fallback,
+        .sidebar-brand .logo-icon img[src=""] + .fallback,
+        .sidebar-brand .logo-icon img[onerror] + .fallback {
+            display: flex;
         }
 
         .sidebar-brand .brand-text {
@@ -786,13 +801,14 @@
 </head>
 <body>
     <!-- ============================================================
-    SIDEBAR
+    SIDEBAR – Logo without gold box
     ============================================================ -->
     <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon">
-                <!-- Upload logo.png to your repository root -->
-                <img src="logo.png" alt="Gold Squirrel Studio" onerror="this.style.display='none'; this.parentElement.textContent='GS'; this.parentElement.style.background='var(--accent-gold)'; this.parentElement.style.color='#0a0e17'; this.parentElement.style.fontWeight='800'; this.parentElement.style.fontSize='18px'; this.parentElement.style.borderRadius='8px'; this.parentElement.style.display='flex'; this.parentElement.style.alignItems='center'; this.parentElement.style.justifyContent='center';">
+                <!-- Upload your logo.png to the repository root -->
+                <img src="logo.png" alt="Gold Squirrel Studio" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="fallback">GS</div>
             </div>
             <div class="brand-text">
                 <div class="title">GOLD SQUIRREL</div>
@@ -835,7 +851,7 @@
     </aside>
 
     <!-- ============================================================
-    MAIN CONTENT
+    MAIN CONTENT (unchanged – same as before)
     ============================================================ -->
     <main class="main" id="mainContent">
 
@@ -1000,7 +1016,7 @@
     </main>
 
     <!-- ============================================================
-    MODALS
+    MODALS & TOAST (unchanged)
     ============================================================ -->
     <div class="modal-overlay" id="leadModal">
         <div class="modal">
@@ -1016,16 +1032,13 @@
         </div>
     </div>
 
-    <!-- ============================================================
-    TOAST
-    ============================================================ -->
     <div class="toast" id="toast">
         <div class="toast-title" id="toastTitle">Success</div>
         <div class="toast-message" id="toastMessage">Action completed.</div>
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT ENGINE (unchanged)
+    JAVASCRIPT ENGINE (exactly the same as before – no changes)
     ============================================================ -->
     <script>
         // ============================================================
