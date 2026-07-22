@@ -72,28 +72,22 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
 
         /* ============================================================
-           SIDEBAR
+           SIDEBAR - DESKTOP (visible) + MOBILE (hidden by default)
            ============================================================ */
         .sidebar {
-            width: 280px;
+            width: 240px;
             min-height: 100vh;
             background: var(--bg-card);
             border-right: 1px solid var(--border-color);
             padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            position: fixed;
+            position: sticky;
             top: 0;
-            left: 0;
             height: 100vh;
             overflow-y: auto;
-            z-index: 1000;
-            transform: translateX(-105%);
+            flex-shrink: 0;
             transition: transform 0.3s ease;
-            box-shadow: 4px 0 30px rgba(0,0,0,0.5);
-        }
-        .sidebar.open {
-            transform: translateX(0);
         }
 
         .sidebar-brand {
@@ -110,13 +104,13 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 8px;
             background: var(--accent-gold);
             color: #0a0e17;
             font-weight: 800;
-            font-size: 20px;
+            font-size: 18px;
             overflow: hidden;
         }
         .sidebar-brand .logo-icon img {
@@ -134,7 +128,7 @@
             background: var(--accent-gold);
             color: #0a0e17;
             font-weight: 800;
-            font-size: 20px;
+            font-size: 18px;
             border-radius: 8px;
         }
         .sidebar-brand .logo-icon img:not([src]) + .fallback,
@@ -158,6 +152,10 @@
             text-transform: uppercase;
             margin-top: -2px;
             display: block;
+        }
+        .sidebar-brand .close-btn {
+            display: none;
+            margin-left: auto;
         }
 
         .sidebar-nav {
@@ -241,7 +239,7 @@
         }
 
         /* ============================================================
-           SIDEBAR BACKDROP
+           SIDEBAR BACKDROP (Mobile only)
            ============================================================ */
         .sidebar-backdrop {
             display: none;
@@ -261,7 +259,6 @@
             overflow-y: auto;
             min-height: 100vh;
             transition: padding 0.3s;
-            margin-top: 0;
         }
 
         .page-header {
@@ -612,7 +609,7 @@
             inset: 0;
             background: rgba(0,0,0,0.75);
             backdrop-filter: blur(4px);
-            z-index: 10000;
+            z-index: 1000;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -708,7 +705,7 @@
             box-shadow: var(--shadow);
             color: var(--text-main);
             font-size: 14px;
-            z-index: 10000;
+            z-index: 1000;
             opacity: 0;
             transform: translateY(20px);
             transition: 0.4s ease;
@@ -786,7 +783,7 @@
         .bottom-nav .nav-item .badge.hot { background: #ff6b4a; color: #fff; }
 
         /* ============================================================
-           MOBILE TOP BAR - FIXED (Always visible)
+           MOBILE TOP BAR
            ============================================================ */
         .mobile-top-bar {
             display: none;
@@ -794,7 +791,7 @@
             top: 0;
             left: 0;
             right: 0;
-            z-index: 9999;
+            z-index: 999;
             background: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
             padding: 10px 16px;
@@ -867,7 +864,10 @@
         }
 
         @media (max-width: 768px) {
-            body { padding-top: 60px; padding-bottom: calc(70px + var(--safe-bottom)); }
+            body {
+                padding-top: 60px;
+                padding-bottom: calc(70px + var(--safe-bottom));
+            }
 
             .mobile-top-bar {
                 display: flex;
@@ -879,7 +879,7 @@
                 left: 0;
                 width: 280px;
                 height: 100vh;
-                z-index: 10000;
+                z-index: 1000;
                 transform: translateX(-105%);
                 border-right: 1px solid var(--border-color);
                 border-radius: 0 16px 16px 0;
@@ -889,8 +889,8 @@
             .sidebar.open {
                 transform: translateX(0);
             }
-            .sidebar.open .sidebar-brand .btn-icon {
-                display: block !important;
+            .sidebar-brand .close-btn {
+                display: block;
             }
 
             .main { padding: 12px 12px 80px 12px; }
@@ -942,7 +942,7 @@
 <body>
 
     <!-- ============================================================
-    MOBILE TOP BAR - FIXED (Always visible on top)
+    MOBILE TOP BAR
     ============================================================ -->
     <div class="mobile-top-bar" id="mobileTopBar">
         <div class="brand">
@@ -958,7 +958,7 @@
     </div>
 
     <!-- ============================================================
-    SIDEBAR BACKDROP
+    SIDEBAR BACKDROP (Mobile only)
     ============================================================ -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
@@ -975,7 +975,7 @@
                 <div class="title">GOLD SQUIRREL</div>
                 <span class="sub">studio of innovation..</span>
             </div>
-            <button class="btn-icon" onclick="closeSidebar()" style="margin-left:auto; display:none;" id="closeSidebarBtn">✕</button>
+            <button class="btn-icon close-btn" onclick="closeSidebar()">✕</button>
         </div>
 
         <nav class="sidebar-nav">
@@ -1015,7 +1015,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>COILOPS</strong> · Advanced v5.6
+            <strong>COILOPS</strong> · Advanced v5.7
         </div>
     </aside>
 
@@ -1535,15 +1535,13 @@
         }
 
         // ============================================================
-        // SIDEBAR (Mobile) - FIXED
+        // SIDEBAR (Mobile)
         // ============================================================
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
             sidebar.classList.toggle('open');
             backdrop.classList.toggle('open');
-            const btn = document.getElementById('closeSidebarBtn');
-            if (btn) btn.style.display = 'block';
         }
 
         function closeSidebar() {
@@ -2493,17 +2491,17 @@
         });
 
         // ============================================================
-        // MOBILE MENU - FIXED (Works!)
+        // MOBILE MENU - FIXED
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuBtn = document.getElementById('mobileMenuBtn');
-            if (menuBtn) {
-                menuBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleSidebar();
-                });
-            }
+        document.getElementById('mobileMenuBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSidebar();
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.getElementById('sidebarBackdrop').addEventListener('click', function() {
+            closeSidebar();
         });
 
         // ============================================================
