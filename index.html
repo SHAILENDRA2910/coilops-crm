@@ -107,7 +107,7 @@
             width: 44px;
             height: 44px;
             border-radius: 8px;
-            background: transparent;  /* was gold, now transparent for your logo */
+            background: var(--accent-gold);  /* gold background for fallback */
             overflow: hidden;
         }
         .sidebar-brand .logo-icon img {
@@ -115,9 +115,10 @@
             height: 100%;
             object-fit: contain;
             display: block;
+            background: transparent;
         }
         .sidebar-brand .logo-icon .fallback {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             width: 100%;
@@ -806,7 +807,7 @@
             width: 34px;
             height: 34px;
             border-radius: 6px;
-            background: transparent;  /* no gold background */
+            background: var(--accent-gold);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -817,9 +818,11 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            display: block;
+            background: transparent;
         }
         .mobile-top-bar .brand .icon .fallback {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             width: 100%;
@@ -1029,7 +1032,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <strong>GOLD SQUIRREL</strong> · v5.8
+            <strong>GOLD SQUIRREL</strong> · v5.9
         </div>
     </aside>
 
@@ -1371,7 +1374,7 @@
         // STATE
         // ============================================================
         let leads = [];
-        let tasks = [];
+        let tasks = [];          // each task: { id, lead_id, lead_name, description, due_date, status, activity }
         let activitiesCache = new Map();
         let currentPage = 'dashboard';
         let editingLeadId = null;
@@ -1435,7 +1438,7 @@
         }
 
         // ============================================================
-        // TASKS LOADING (fixed: store activity ID, skip deleted)
+        // TASKS LOADING – FIXED: stores full activity, filters deleted
         // ============================================================
         async function loadTasks() {
             document.getElementById('taskLoadStatus').textContent = 'Loading tasks...';
@@ -1449,12 +1452,13 @@
                     );
                     for (const act of taskActs) {
                         newTasks.push({
-                            id: act.id,               // store real activity ID
+                            id: act.id,
                             lead_id: lead.company,
                             lead_name: lead.company,
                             description: act.description || act.type,
                             due_date: act.date,
-                            status: act.outcome === 'completed' ? 'completed' : 'pending'
+                            status: act.outcome === 'completed' ? 'completed' : 'pending',
+                            activity: act   // store full activity for update
                         });
                     }
                 }
@@ -1483,7 +1487,8 @@
                             lead_name: lead.company,
                             description: act.description || act.type,
                             due_date: act.date,
-                            status: act.outcome === 'completed' ? 'completed' : 'pending'
+                            status: act.outcome === 'completed' ? 'completed' : 'pending',
+                            activity: act
                         });
                     }
                 }
@@ -1494,7 +1499,7 @@
         }
 
         // ============================================================
-        // NAVIGATION
+        // NAVIGATION (unchanged)
         // ============================================================
         function navigateTo(page) {
             currentPage = page;
@@ -1586,7 +1591,7 @@
         }
 
         // ============================================================
-        // BULK EDIT
+        // BULK EDIT (unchanged)
         // ============================================================
         function toggleSelectAll() {
             const checked = document.getElementById('selectAll').checked;
@@ -1656,7 +1661,7 @@
         }
 
         // ============================================================
-        // RENDER FUNCTIONS (unchanged except tasks rendering now uses real IDs)
+        // RENDER FUNCTIONS (unchanged except tasks use new structure)
         // ============================================================
         function renderDashboard() {
             const total = leads.length;
@@ -1898,6 +1903,9 @@
             }).join('');
         }
 
+        // ============================================================
+        // RENDER TASKS – uses updated tasks array
+        // ============================================================
         function renderTasks() {
             const filter = document.getElementById('taskFilter')?.value || 'all';
             let filtered = tasks.filter(t => {
@@ -1917,7 +1925,7 @@
                 return `<tr>
                     <td>${t.description}</td>
                     <td>${t.lead_name || '—'}</td>
-                    <td class="${isOverdue ? 'overdue' : ''}">${t.due_date || '—'}</td>
+                    <td class="${isOverdue ? 'overdue' : ''}">${t.due_date ? new Date(t.due_date).toLocaleDateString() : '—'}</td>
                     <td><span class="status-badge ${t.status === 'completed' ? 'won' : 'lead'}">${t.status || 'pending'}</span></td>
                     <td style="text-align:right;">
                         ${t.status === 'pending' ? `<button class="btn-icon" onclick="completeTask('${t.id}')" title="Complete">✅</button>` : ''}
@@ -2426,7 +2434,7 @@
         }
 
         // ============================================================
-        // TASKS - FIXED: complete & delete now use real activity ID
+        // TASKS – FIXED: complete & delete using stored activity
         // ============================================================
         function openTaskModal(company, contact) {
             document.getElementById('taskModalTitle').textContent = 'New Task';
@@ -2468,17 +2476,20 @@
         function addTaskFromLead(company, contact) { openTaskModal(company, contact); }
         function closeTaskModal() { document.getElementById('taskModal').classList.remove('open'); }
 
-        // COMPLETE: update the existing activity's outcome to 'completed'
+        // COMPLETE – update existing activity
         async function completeTask(taskId) {
             if (!taskId) { showToast('Error', 'No task ID provided.'); return; }
+            // Find the task in our array
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) { showToast('Error', 'Task not found.'); return; }
+            
+            // We have the full activity object stored in task.activity
+            const activity = task.activity;
+            if (!activity) { showToast('Error', 'Missing activity data.'); return; }
+
             try {
-                // We need to find the original activity to update it.
-                // Since we store the activity ID as task.id, we can update it directly.
-                await saveActivityRecord({
-                    id: taskId,   // pass the existing ID to update
-                    outcome: 'completed'
-                });
-                // Clear cache for all leads (or we could find the specific lead)
+                // Update the outcome to 'completed' – keep everything else same
+                await saveActivityRecord({ ...activity, outcome: 'completed' });
                 activitiesCache.clear();
                 showToast('Success', 'Task marked as completed.');
                 await loadTasks(); // reload tasks
@@ -2488,27 +2499,34 @@
             }
         }
 
-        // DELETE: delete the activity
+        // DELETE – try delete, else mark as deleted
         async function deleteTask(taskId) {
             if (!taskId) { showToast('Error', 'No task ID provided.'); return; }
             if (!confirm('Delete this task permanently?')) return;
+            
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) { showToast('Error', 'Task not found.'); return; }
+
             try {
+                // First try the delete endpoint
                 await deleteActivityRecord({ id: taskId });
                 activitiesCache.clear();
                 showToast('Deleted', 'Task removed.');
                 await loadTasks();
                 updateBadges();
             } catch (e) {
-                // If deleteActivity is not supported, fallback to marking as deleted
+                // If delete not supported, fallback to marking as deleted
                 try {
-                    await saveActivityRecord({
-                        id: taskId,
-                        outcome: 'deleted'
-                    });
-                    activitiesCache.clear();
-                    showToast('Deleted', 'Task marked as deleted.');
-                    await loadTasks();
-                    updateBadges();
+                    const activity = task.activity;
+                    if (activity) {
+                        await saveActivityRecord({ ...activity, outcome: 'deleted' });
+                        activitiesCache.clear();
+                        showToast('Deleted', 'Task marked as deleted.');
+                        await loadTasks();
+                        updateBadges();
+                    } else {
+                        showToast('Error', 'Could not delete task.');
+                    }
                 } catch (err) {
                     showToast('Error', 'Failed to delete task: ' + err.message);
                 }
